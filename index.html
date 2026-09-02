@@ -1,0 +1,1389 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <title>21 — городская ОС</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root {
+      --p: #f4f0e7;
+      --p2: #e9e3d7;
+      --i: #151515;
+      --m: #77736b;
+      --l: rgba(21, 21, 21, .16);
+      --w: #fbfaf7;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: #111;
+      color: var(--i);
+      font-family: Inter, system-ui, sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .phone {
+      width: 393px;
+      height: 852px;
+      background: #080808;
+      border-radius: 46px;
+      padding: 9px;
+      box-shadow: 0 35px 90px #0009;
+      position: relative;
+    }
+
+    .phone:before {
+      content: "";
+      position: absolute;
+      z-index: 50;
+      top: 9px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 124px;
+      height: 28px;
+      background: #050505;
+      border-radius: 20px;
+    }
+
+    .screen {
+      height: 100%;
+      border-radius: 38px;
+      overflow: hidden;
+      background: var(--p);
+      position: relative;
+    }
+
+    .screen:after {
+      content: "";
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      opacity: .08;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      mix-blend-mode: multiply;
+    }
+
+    .content {
+      height: 100%;
+      overflow: auto;
+      padding: 42px 15px 92px;
+      scrollbar-width: none;
+    }
+
+    .content::-webkit-scrollbar {
+      display: none;
+    }
+
+    .view {
+      display: none;
+      animation: in .25s ease;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes in {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 2px 12px;
+    }
+
+    .brand {
+      font-family: "Press Start 2P";
+      font-size: 16px;
+    }
+
+    .topright {
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #151515;
+    }
+
+    h1 {
+      font-size: 27px;
+      line-height: 1;
+      margin: 0 0 4px;
+      letter-spacing: -1px;
+    }
+
+    h2 {
+      font-size: 17px;
+      margin: 0;
+      font-weight: 800;
+    }
+
+    .eyebrow {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1.3px;
+      color: var(--m);
+    }
+
+    .muted {
+      color: var(--m);
+    }
+
+    .small {
+      font-size: 12px;
+    }
+
+    .tiny {
+      font-size: 10px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 9px;
+    }
+
+    .card {
+      background: #ffffff9e;
+      border: 1px solid var(--l);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 8px 22px #0000000b;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: .035;
+      background: repeating-linear-gradient(115deg, transparent 0 8px, #111 9px 10px);
+    }
+
+    .card.ink {
+      background: var(--i);
+      color: var(--p);
+      border-color: var(--i);
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .stat {
+      border: 1px solid var(--l);
+      border-radius: 14px;
+      padding: 9px;
+      background: #fff8;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 21px;
+      letter-spacing: -1px;
+    }
+
+    .stat span {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--m);
+      text-transform: uppercase;
+    }
+
+    .btn {
+      min-height: 40px;
+      padding: 0 13px;
+      border: 1px solid var(--i);
+      border-radius: 13px;
+      background: var(--i);
+      color: var(--p);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .btn:active {
+      transform: scale(.96);
+    }
+
+    .btn.light {
+      background: transparent;
+      color: var(--i);
+      border-color: var(--l);
+    }
+
+    .btn.square {
+      width: 40px;
+      padding: 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--l);
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .progress {
+      height: 7px;
+      background: #ddd8ce;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .progress i {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--i);
+      border-radius: 8px;
+      transition: .5s;
+    }
+
+    .hero {
+      height: 244px;
+      background: var(--p2);
+      border: 1px solid var(--l);
+      border-radius: 22px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .big21 {
+      font-family: "Press Start 2P";
+      font-size: 70px;
+      letter-spacing: -7px;
+      margin-top: 18px;
+    }
+
+    .caption {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .mount {
+      position: absolute;
+      left: -10px;
+      right: -10px;
+      bottom: 22px;
+      height: 90px;
+    }
+
+    .mount svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .herochar {
+      position: absolute;
+      right: 31px;
+      bottom: 20px;
+      width: 54px;
+      height: 75px;
+    }
+
+    .px {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .px i {
+      position: absolute;
+      background: var(--i);
+    }
+
+    .px .h {
+      width: 25px;
+      height: 25px;
+      left: 15px;
+      top: 0;
+      border-radius: 5px;
+    }
+
+    .px .b {
+      width: 28px;
+      height: 32px;
+      left: 13px;
+      top: 26px;
+    }
+
+    .px .l1,
+    .px .l2 {
+      width: 10px;
+      height: 23px;
+      top: 57px;
+    }
+
+    .px .l1 {
+      left: 13px;
+    }
+
+    .px .l2 {
+      left: 31px;
+    }
+
+    .px .bag {
+      width: 8px;
+      height: 22px;
+      left: 5px;
+      top: 31px;
+      opacity: .65;
+    }
+
+    .quickmap {
+      height: 132px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid var(--l);
+      margin-bottom: 10px;
+      filter: grayscale(1) contrast(1.1);
+    }
+
+    .section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 7px 2px;
+    }
+
+    .quest {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px dashed var(--l);
+    }
+
+    .quest:last-child {
+      border: 0;
+    }
+
+    .qicon,
+    .listicon,
+    .itemart {
+      border: 1px solid var(--i);
+      background: var(--w);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+    }
+
+    .qicon {
+      width: 39px;
+      height: 39px;
+      font-size: 18px;
+      flex: none;
+    }
+
+    .qmain {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .qmain b {
+      font-size: 12px;
+    }
+
+    .qmain div {
+      font-size: 10px;
+      color: var(--m);
+      margin-top: 2px;
+    }
+
+    .reward {
+      font-size: 9px;
+      font-weight: 800;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .nav {
+      position: absolute;
+      z-index: 30;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 78px;
+      padding: 7px 10px;
+      background: #faf8f3ed;
+      backdrop-filter: blur(18px);
+      border-top: 1px solid var(--l);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .nav button {
+      border: 0;
+      background: transparent;
+      color: #8a867e;
+      font-size: 9px;
+      font-weight: 800;
+      border-radius: 13px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .nav button span {
+      font-size: 19px;
+    }
+
+    .nav button.active {
+      color: var(--i);
+      background: #00000009;
+    }
+
+    #map {
+      height: 430px;
+      border-radius: 20px;
+      border: 1px solid var(--l);
+      overflow: hidden;
+      filter: grayscale(1) contrast(1.12);
+    }
+
+    .leaflet-tile-pane {
+      filter: grayscale(1) contrast(1.15) brightness(1.08);
+    }
+
+    .pin {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #111;
+      color: #f4f0e7;
+      border: 2px solid #f4f0e7;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      font-weight: 800;
+      box-shadow: 0 2px 8px #0005;
+    }
+
+    .listrow {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px dashed var(--l);
+    }
+
+    .listrow:last-child {
+      border: 0;
+    }
+
+    .listicon {
+      width: 39px;
+      height: 39px;
+      flex: none;
+    }
+
+    .listbody {
+      flex: 1;
+    }
+
+    .listbody b {
+      font-size: 12px;
+    }
+
+    .listbody p {
+      margin: 3px 0 0;
+      font-size: 10px;
+      color: var(--m);
+    }
+
+    .avatarstage {
+      height: 235px;
+      background: var(--p2);
+      border: 1px solid var(--l);
+      border-radius: 22px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .floor {
+      position: absolute;
+      bottom: 24px;
+      width: 190px;
+      border-top: 2px solid var(--i);
+      border-radius: 50%;
+      opacity: .3;
+    }
+
+    .avatar {
+      width: 105px;
+      height: 150px;
+      position: relative;
+      transform: scale(1.08);
+    }
+
+    .avatar div {
+      position: absolute;
+      background: var(--i);
+    }
+
+    .avatar .head {
+      left: 31px;
+      top: 0;
+      width: 45px;
+      height: 45px;
+      border-radius: 9px;
+    }
+
+    .avatar .face {
+      left: 42px;
+      top: 17px;
+      width: 6px;
+      height: 6px;
+      background: var(--p);
+      box-shadow: 18px 0 0 var(--p);
+    }
+
+    .avatar .body {
+      left: 26px;
+      top: 48px;
+      width: 55px;
+      height: 58px;
+      border-radius: 8px;
+    }
+
+    .avatar .a1,
+    .avatar .a2 {
+      top: 53px;
+      width: 16px;
+      height: 56px;
+      border-radius: 7px;
+    }
+
+    .avatar .a1 {
+      left: 8px;
+    }
+
+    .avatar .a2 {
+      right: 8px;
+    }
+
+    .avatar .l1,
+    .avatar .l2 {
+      top: 102px;
+      width: 21px;
+      height: 47px;
+      border-radius: 7px;
+    }
+
+    .avatar .l1 {
+      left: 29px;
+    }
+
+    .avatar .l2 {
+      left: 56px;
+    }
+
+    .access {
+      position: absolute;
+      left: 20px;
+      top: -7px;
+      font-size: 30px;
+      background: none !important;
+      z-index: 2;
+    }
+
+    .inventory {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+    }
+
+    .item {
+      text-align: center;
+      border: 1px solid var(--l);
+      border-radius: 14px;
+      padding: 7px;
+      background: #fff8;
+    }
+
+    .itemart {
+      width: 45px;
+      height: 45px;
+      margin: auto;
+      font-size: 21px;
+    }
+
+    .item b {
+      display: block;
+      font-size: 8px;
+      margin-top: 5px;
+    }
+
+    .item span {
+      font-size: 8px;
+      color: var(--m);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: #0006;
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .sheet {
+      width: 393px;
+      max-height: 86vh;
+      overflow: auto;
+      background: var(--p);
+      border: 1px solid #111;
+      border-radius: 28px;
+      padding: 18px 15px 22px;
+      box-shadow: 0 25px 70px #0007;
+    }
+
+    .handle {
+      width: 38px;
+      height: 4px;
+      background: #aaa;
+      border-radius: 8px;
+      margin: -4px auto 14px;
+    }
+
+    .field {
+      margin: 10px 0;
+    }
+
+    .field label {
+      display: block;
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--m);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--l);
+      border-radius: 13px;
+      background: #fff9;
+      color: var(--i);
+      outline: none;
+    }
+
+    .field textarea {
+      min-height: 80px;
+    }
+
+    .choice {
+      display: flex;
+      gap: 7px;
+      overflow: auto;
+    }
+
+    .choice button {
+      flex: 0 0 auto;
+      width: 52px;
+      height: 52px;
+      border: 1px solid var(--l);
+      background: #fff9;
+      border-radius: 14px;
+      font-size: 23px;
+    }
+
+    .choice button.sel {
+      border: 2px solid #111;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 200;
+      bottom: 92px;
+      left: 50%;
+      transform: translate(-50%, 15px);
+      background: #111;
+      color: var(--p);
+      padding: 10px 14px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 800;
+      opacity: 0;
+      transition: .2s;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .pop {
+      position: fixed;
+      z-index: 210;
+      left: 50%;
+      top: 35%;
+      transform: translate(-50%, -50%) scale(.8);
+      background: var(--p);
+      border: 2px solid #111;
+      border-radius: 22px;
+      padding: 22px;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s;
+      box-shadow: 0 20px 70px #0007;
+    }
+
+    .pop.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .pop .ri {
+      font-size: 48px;
+    }
+
+    .pop b {
+      display: block;
+      font-size: 18px;
+      margin: 6px 0;
+    }
+
+    .pop span {
+      font-size: 10px;
+      color: var(--m);
+    }
+
+    @media(max-width:420px) {
+      body {
+        background: var(--p);
+      }
+      .phone {
+        width: 100%;
+        height: 100dvh;
+        padding: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      .phone:before {
+        top: 0;
+      }
+      .screen {
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="phone">
+    <div class="screen">
+      <main class="content">
+
+        <!-- ===== HOME ===== -->
+        <section class="view active" id="home">
+          <div class="top">
+            <span class="brand">21</span>
+            <span class="topright" id="clock">21:21 <i class="dot"></i></span>
+          </div>
+
+          <div class="hero">
+            <div class="eyebrow">ГОРОДСКАЯ ОС</div>
+            <div class="big21">21</div>
+            <div class="caption">КАРТА · ЛЮДИ · КВЕСТЫ · ЗНАНИЯ</div>
+            <div class="mount">
+              <svg viewBox="0 0 400 100" preserveAspectRatio="none">
+                <path d="M0 92 60 38 88 64 142 9 220 92 270 36 325 72 360 28 400 92" fill="none" stroke="#151515" stroke-width="2"/>
+                <path d="M0 92 60 38 88 64 142 9 220 92" fill="none" stroke="#151515" stroke-width="1" stroke-dasharray="3 4"/>
+              </svg>
+            </div>
+            <div class="herochar">
+              <div class="px">
+                <i class="h"></i>
+                <i class="b"></i>
+                <i class="l1"></i>
+                <i class="l2"></i>
+                <i class="bag"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="quickmap" id="homeMap"></div>
+
+          <div class="grid3">
+            <div class="stat"><b id="karma">0</b><span>карма</span></div>
+            <div class="stat"><b id="xp">0</b><span>xp</span></div>
+            <div class="stat"><b id="done">0</b><span>заданий</span></div>
+          </div>
+
+          <div class="card" style="margin-top:10px">
+            <div class="row">
+              <div>
+                <div class="eyebrow">ПРОГРЕСС</div>
+                <h2>Уровень <span id="level">1</span></h2>
+              </div>
+              <span class="tag">◒ <span id="need">100</span></span>
+            </div>
+            <div style="height:8px"></div>
+            <div class="progress"><i id="bar"></i></div>
+          </div>
+
+          <div class="section">
+            <h2>Активные квесты</h2>
+            <span class="small muted" id="count">0</span>
+          </div>
+          <div class="card" id="homeQuests"></div>
+
+          <div class="section">
+            <h2>Предметы</h2>
+            <button class="btn light" onclick="go('profile')">→</button>
+          </div>
+          <div class="card" id="homeItems"></div>
+        </section>
+
+        <!-- ===== MAP ===== -->
+        <section class="view" id="mapview">
+          <div class="top">
+            <div>
+              <div class="eyebrow">РАЙОН</div>
+              <h1>Карта</h1>
+            </div>
+            <button class="btn square" onclick="addPoint()">＋</button>
+          </div>
+          <div id="map"></div>
+          <div class="card" style="margin-top:10px">
+            <div class="row">
+              <b class="small">ТОЧКИ РАЙОНА</b>
+              <span class="tag">● LIVE</span>
+            </div>
+            <div class="grid3" style="margin-top:10px">
+              <div class="stat"><b id="pointsN">3</b><span>точки</span></div>
+              <div class="stat"><b>8</b><span>людей</span></div>
+              <div class="stat"><b>4</b><span>сбора</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== QUESTS ===== -->
+        <section class="view" id="quests">
+          <div class="top">
+            <div>
+              <div class="eyebrow">ДЕЙСТВИЯ</div>
+              <h1>Квесты</h1>
+            </div>
+            <button class="btn square" onclick="newQuest()">＋</button>
+          </div>
+          <div class="grid2" style="margin-bottom:10px">
+            <button class="btn" onclick="questMode(false)">АКТИВНЫЕ</button>
+            <button class="btn light" onclick="questMode(true)">ГОТОВО</button>
+          </div>
+          <div class="card" id="questList"></div>
+        </section>
+
+        <!-- ===== ENCYCLOPEDIA ===== -->
+        <section class="view" id="ency">
+          <div class="top">
+            <div>
+              <div class="eyebrow">ЗНАНИЯ</div>
+              <h1>Энциклопедия</h1>
+            </div>
+            <button class="btn square" onclick="newArticle()">＋</button>
+          </div>
+          <div class="grid2" style="margin-bottom:10px">
+            <button class="btn light" onclick="enc('all')">ВСЕ</button>
+            <button class="btn light" onclick="enc('ремонт')">🔧 РЕМОНТ</button>
+            <button class="btn light" onclick="enc('вода')">◌ ВОДА</button>
+            <button class="btn light" onclick="enc('еда')">✳ ЕДА</button>
+          </div>
+          <div class="card" id="encList"></div>
+        </section>
+
+        <!-- ===== PROFILE ===== -->
+        <section class="view" id="profile">
+          <div class="top">
+            <div>
+              <div class="eyebrow">ПЕРСОНАЖ</div>
+              <h1 id="pname">Исследователь</h1>
+            </div>
+            <button class="btn square" onclick="customize()">⚙</button>
+          </div>
+
+          <div class="avatarstage">
+            <div class="floor"></div>
+            <div class="avatar">
+              <div class="access" id="acc">⌁</div>
+              <div class="head"></div>
+              <div class="face"></div>
+              <div class="body"></div>
+              <div class="a1"></div>
+              <div class="a2"></div>
+              <div class="l1"></div>
+              <div class="l2"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="row">
+              <div>
+                <div class="eyebrow">ПРОКАЧКА</div>
+                <h2>Уровень <span id="plvl">1</span></h2>
+              </div>
+              <b id="pxp">0 XP</b>
+            </div>
+            <div style="height:8px"></div>
+            <div class="progress"><i id="pbar"></i></div>
+          </div>
+
+          <div class="section">
+            <h2>Уникальные предметы</h2>
+            <span class="small muted" id="itemCount">0/12</span>
+          </div>
+          <div class="card">
+            <div class="inventory" id="inventory"></div>
+          </div>
+
+          <div class="section"><h2>Навыки</h2></div>
+          <div class="card">
+            <div class="row small"><b>🔧 Ремонт</b><span id="sr">0</span></div>
+            <div class="progress"><i id="srb"></i></div>
+            <div class="row small" style="margin-top:10px"><b>🤝 Помощь</b><span id="sh">0</span></div>
+            <div class="progress"><i id="shb"></i></div>
+            <div class="row small" style="margin-top:10px"><b>▤ Знания</b><span id="sb">0</span></div>
+            <div class="progress"><i id="sbb"></i></div>
+          </div>
+        </section>
+
+        <!-- ===== COMMUNITY ===== -->
+        <section class="view" id="community">
+          <div class="top">
+            <div>
+              <div class="eyebrow">СООБЩЕСТВО</div>
+              <h1>Район</h1>
+            </div>
+            <button class="btn square" onclick="newForum()">＋</button>
+          </div>
+
+          <div class="card ink">
+            <div class="row">
+              <div>
+                <div class="eyebrow" style="color:#aaa">СЕЙЧАС</div>
+                <h2>8 участников</h2>
+              </div>
+              <span style="font-size:28px">◉</span>
+            </div>
+            <div style="font-size:10px;color:#aaa;margin-top:8px">12 действий · 4 задачи · 2 решения</div>
+          </div>
+
+          <div class="section"><h2>Форум</h2></div>
+          <div class="card" id="forum"></div>
+
+          <div class="section"><h2>Сборы</h2></div>
+          <div class="card" id="fund"></div>
+        </section>
+
+      </main>
+
+      <!-- ===== NAV ===== -->
+      <nav class="nav">
+        <button class="active" data-v="home"><span>⌂</span>ГЛАВНАЯ</button>
+        <button data-v="mapview"><span>⌖</span>КАРТА</button>
+        <button data-v="quests"><span>✦</span>КВЕСТЫ</button>
+        <button data-v="ency"><span>▤</span>ЗНАНИЯ</button>
+        <button data-v="profile"><span>♙</span>ПРОФИЛЬ</button>
+      </nav>
+
+    </div>
+  </div>
+
+  <!-- ===== MODALS ===== -->
+  <div class="modal" id="modal">
+    <div class="sheet" id="sheet"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="pop" id="pop">
+    <div class="ri" id="ri">✦</div>
+    <b id="rt">Предмет найден</b>
+    <span id="rx">+XP · +карма</span>
+  </div>
+
+  <!-- ===== SCRIPTS ===== -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+  </script>
+  <script>
+    (() => {
+      const K = '21_ink_v3';
+      const D = {
+        karma: 0,
+        xp: 0,
+        done: 0,
+        character: { name: 'Исследователь', accessory: '⌁', skills: { repair: 0, help: 0, books: 0 } },
+        quests: [
+          { id: 1, icon: '▱', title: 'Починить скамейку', desc: 'двор · 12 мин', xp: 50, k: 10, skill: 'repair',
+            item: 'Серебряный болт', ii: '⚙', done: false },
+          { id: 2, icon: '◌', title: 'Помочь соседу', desc: 'перенести коробки', xp: 40, k: 8, skill: 'help',
+            item: 'Красная нить', ii: '〰', done: false },
+          { id: 3, icon: '▤', title: 'Обменяться книгами', desc: 'полка у подъезда', xp: 30, k: 5, skill: 'books',
+            item: 'Значок 21', ii: '21', done: false },
+          { id: 4, icon: '△', title: 'Пройти мастер-класс', desc: 'мастерская · 18:30', xp: 60, k: 15, skill: 'repair',
+            item: 'Мини-рулетка', ii: '⌁', done: false }
+        ],
+        inventory: [],
+        enc: [
+          { t: 'Как отфильтровать воду', c: 'вода', x: 'Угольный фильтр + кипячение.' },
+          { t: 'Простой ремонт мебели', c: 'ремонт', x: 'Проверить крепления и заменить повреждённый элемент.' },
+          { t: 'Грядки на балконе', c: 'еда', x: 'Зелень, лук и томаты подходят для контейнеров.' }
+        ],
+        forum: [
+          { t: 'Нужна дрель на вечер', x: 'Можно взять у кого-нибудь?', n: 4 },
+          { t: 'Собрали деньги на лампу', x: 'Установка в подъезде завтра.', n: 7 },
+          { t: 'Где поставить книжную полку?', x: 'Предлагаю первый этаж.', n: 3 }
+        ],
+        fund: [
+          { t: 'Освещение во дворе', r: 720, g: 1200 },
+          { t: 'Книжная полка', r: 430, g: 600 }
+        ],
+        points: [
+          { a: 55.7512, b: 37.6184, t: '⚠', x: 'Яма на дороге' },
+          { a: 55.7558, b: 37.6177, t: '+', x: 'Помощь соседу' },
+          { a: 55.7495, b: 37.625, t: '21', x: 'Стикер 21' }
+        ]
+      };
+
+      let S = load();
+
+      function cp(x) { return JSON.parse(JSON.stringify(x)) }
+
+      function merge(a, b) {
+        Object.keys(b || {}).forEach(k => {
+          if (b[k] && typeof b[k] == 'object' && !Array.isArray(b[k])) a[k] = merge(a[k] || {}, b[k]);
+          else a[k] = b[k]
+        });
+        return a
+      }
+
+      function load() {
+        try {
+          let x = localStorage.getItem(K);
+          return x ? merge(cp(D), JSON.parse(x)) : cp(D)
+        } catch (e) { return cp(D) }
+      }
+
+      function save() {
+        localStorage.setItem(K, JSON.stringify(S));
+        render();
+      }
+
+      function info() {
+        let l = 1,
+          r = S.xp,
+          n = 100;
+        while (r >= n) { r -= n;
+          l++;
+          n = Math.floor(n * 1.28) + 20 }
+        return { l, r, n, p: Math.min(100, r / n * 100) }
+      }
+
+      function toast(t) {
+        let e = document.getElementById('toast');
+        e.textContent = t;
+        e.classList.add('show');
+        clearTimeout(window.tt);
+        window.tt = setTimeout(() => e.classList.remove('show'), 1700)
+      }
+
+      function go(v) {
+        document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
+        document.getElementById(v).classList.add('active');
+        document.querySelectorAll('.nav button').forEach(x => x.classList.toggle('active', x.dataset.v === v));
+        document.querySelector('.content').scrollTo({ top: 0, behavior: 'smooth' });
+        if (v === 'mapview') setTimeout(() => map.invalidateSize(), 100)
+      }
+      document.querySelectorAll('.nav button').forEach(x => x.onclick = () => go(x.dataset.v));
+      window.go = go;
+
+      function renderStats() {
+        let q = info();
+        karma.textContent = S.karma;
+        xp.textContent = S.xp;
+        done.textContent = S.done;
+        level.textContent = q.l;
+        need.textContent = q.n;
+        bar.style.width = q.p + '%';
+        pname.textContent = S.character.name;
+        plvl.textContent = q.l;
+        pxp.textContent = S.xp + ' XP';
+        pbar.style.width = q.p + '%';
+        acc.textContent = S.character.accessory;
+        itemCount.textContent = S.inventory.length + '/12';
+        sr.textContent = S.character.skills.repair;
+        sh.textContent = S.character.skills.help;
+        sb.textContent = S.character.skills.books;
+        srb.style.width = S.character.skills.repair + '%';
+        shb.style.width = S.character.skills.help + '%';
+        sbb.style.width = S.character.skills.books + '%';
+      }
+
+      const items = {
+        'Серебряный болт': ['⚙', 'за ремонт'],
+        'Красная нить': ['〰', 'за помощь'],
+        'Значок 21': ['21', 'за знания'],
+        'Мини-рулетка': ['⌁', 'за мастер-класс'],
+        'Знак района': ['✦', 'за действие']
+      };
+
+      function questHTML(q) {
+        return `<div class="quest"><div class="qicon">${q.icon}</div><div class="qmain"><b>${q.title}</b><div>${q.desc}</div></div><div class="reward">+${q.xp} XP<br>+${q.k} ◉</div>${q.done?'<span class="tag">✓</span>':'<button class="btn square" onclick="doneQ('+q.id+')">→</button>'}</div>`
+      }
+
+      function renderQuests(done = false) {
+        let a = S.quests.filter(q => q.done === done);
+        document.getElementById('count').textContent = S.quests.filter(q => !q.done).length;
+        document.getElementById('homeQuests').innerHTML = S.quests.filter(q => !q.done).slice(0, 3).map(questHTML).join('') ||
+          '<div class="muted small">Пока пусто.</div>';
+        document.getElementById('questList').innerHTML = a.map(questHTML).join('') ||
+          '<div class="muted small">Пока пусто.</div>';
+      }
+      window.questMode = renderQuests;
+      window.doneQ = id => {
+        let q = S.quests.find(x => x.id === id);
+        if (!q || q.done) return;
+        q.done = true;
+        S.xp += q.xp;
+        S.karma += q.k;
+        S.done++;
+        S.character.skills[q.skill] = Math.min(100, S.character.skills[q.skill] + 10);
+        if (!S.inventory.includes(q.item)) S.inventory.push(q.item);
+        save();
+        reward(q);
+      };
+
+      function reward(q) {
+        ri.textContent = q.ii;
+        rt.textContent = q.item;
+        rx.textContent = '+' + q.xp + ' XP  ·  +' + q.k + ' кармы';
+        pop.classList.add('show');
+        setTimeout(() => pop.classList.remove('show'), 1800);
+      }
+
+      function renderItems() {
+        homeItems.innerHTML = S.inventory.length ? S.inventory.slice(-4).reverse().map(n => {
+          let m = items[n] || ['◆', 'предмет'];
+          return `<div class="row" style="padding:4px 0"><div class="row"><div class="itemart" style="width:44px;height:44px">${m[0]}</div><div><b class="small">${n}</b><div class="tiny muted">${m[1]}</div></div></div></div>`
+        }).join('<div style="height:1px;background:var(--l);margin:6px 0"></div>') :
+          '<div class="muted small">Выполните квест, чтобы получить первый предмет.</div>';
+
+        inventory.innerHTML = Array.from({ length: 12 }, (_, i) => {
+          let n = S.inventory[i];
+          if (!n) return '<div class="item" style="opacity:.3"><div class="itemart">＋</div><b>слот</b><span>???</span></div>';
+          let m = items[n] || ['◆', 'предмет'];
+          return `<div class="item"><div class="itemart">${m[0]}</div><b>${n}</b><span>${m[1]}</span></div>`;
+        }).join('');
+      }
+
+      let ef = 'all';
+
+      function enc(c) { ef = c;
+        renderEnc() }
+      window.enc = enc;
+
+      function renderEnc() {
+        let a = ef === 'all' ? S.enc : S.enc.filter(x => x.c === ef);
+        encList.innerHTML = a.map(x =>
+          `<div class="listrow"><div class="listicon">${x.c==='вода'?'◌':x.c==='еда'?'✳':'🔧'}</div><div class="listbody"><b>${x.t}</b><p>${x.x}</p></div><span class="tag">#${x.c}</span></div>`
+        ).join('');
+      }
+
+      function renderCommunity() {
+        forum.innerHTML = S.forum.map(x =>
+          `<div class="listrow"><div class="listicon">◌</div><div class="listbody"><b>${x.t}</b><p>${x.x}</p></div><span class="small">💬 ${x.n}</span></div>`
+        ).join('');
+        fund.innerHTML = S.fund.map(x =>
+          `<div class="listrow"><div class="listicon">₽</div><div class="listbody"><b>${x.t}</b><p>${x.r} / ${x.g} ₽</p><div class="progress"><i style="width:${Math.min(100,x.r/x.g*100)}%"></i></div></div></div>`
+        ).join('');
+      }
+
+      function render() {
+        renderStats();
+        renderQuests();
+        renderItems();
+        renderEnc();
+        renderCommunity();
+      }
+
+      function openM(s) {
+        sheet.innerHTML = '<div class="handle"></div>' + s;
+        modal.classList.add('open');
+      }
+
+      function closeM() { modal.classList.remove('open') }
+      modal.onclick = e => { if (e.target === modal) closeM() };
+
+      window.customize = () => {
+        let aa = ['⌁', '⌂', '△', '✦', '21', '〰', '◉', '◆'];
+        openM(`<div class="eyebrow">НАСТРОЙКА</div><h2 style="margin:4px 0 15px">Персонаж</h2><div class="field"><label>Имя</label><input id="cn" value="${S.character.name}"></div><div class="field"><label>Аксессуар</label><div class="choice" id="choices">${aa.map(a=>`<button class="${a===S.character.accessory?'sel':''}" onclick="pick(this,'${a}')">${a}</button>`).join('')}</div></div><div class="row" style="margin-top:15px"><button class="btn light" onclick="closeM()">ОТМЕНА</button><button class="btn" onclick="saveC()">СОХРАНИТЬ</button></div>`)
+      };
+      let picked = null;
+      window.pick = (e, a) => { picked = a;
+        document.querySelectorAll('#choices button').forEach(x => x.classList.remove('sel'));
+        e.classList.add('sel') };
+      window.saveC = () => {
+        let n = cn.value.trim();
+        if (n) S.character.name = n;
+        if (picked) S.character.accessory = picked;
+        picked = null;
+        save();
+        closeM();
+        toast('Сохранено')
+      };
+
+      window.newQuest = () => openM(
+        `<div class="eyebrow">НОВОЕ ДЕЙСТВИЕ</div><h2 style="margin:4px 0 15px">Создать квест</h2><div class="field"><label>Название</label><input id="nt"></div><div class="field"><label>Описание</label><textarea id="nd"></textarea></div><div class="row"><button class="btn light" onclick="closeM()">ОТМЕНА</button><button class="btn" onclick="createQ()">ДОБАВИТЬ</button></div>`
+        );
+      window.createQ = () => {
+        let t = nt.value.trim();
+        if (!t) return toast('Нужно название');
+        S.quests.push({ id: Date.now(), icon: '✦', title: t, desc: nd.value.trim() || 'район', xp: 25, k: 5,
+          skill: 'help', item: 'Знак района', ii: '✦', done: false });
+        save();
+        closeM();
+        toast('Квест добавлен')
+      };
+
+      window.newArticle = () => openM(
+        `<div class="eyebrow">ЗНАНИЯ</div><h2 style="margin:4px 0 15px">Новая статья</h2><div class="field"><label>Название</label><input id="at"></div><div class="field"><label>Категория</label><select id="ac"><option>ремонт</option><option>вода</option><option>еда</option></select></div><div class="field"><label>Текст</label><textarea id="ax"></textarea></div><div class="row"><button class="btn light" onclick="closeM()">ОТМЕНА</button><button class="btn" onclick="createA()">ДОБАВИТЬ</button></div>`
+        );
+      window.createA = () => {
+        if (!at.value.trim() || !ax.value.trim()) return toast('Заполните поля');
+        S.enc.unshift({ t: at.value.trim(), c: ac.value, x: ax.value.trim() });
+        save();
+        closeM();
+        toast('Статья добавлена')
+      };
+
+      window.newForum = () => openM(
+        `<div class="eyebrow">СООБЩЕСТВО</div><h2 style="margin:4px 0 15px">Новая тема</h2><div class="field"><label>Заголовок</label><input id="ft"></div><div class="field"><label>Сообщение</label><textarea id="fx"></textarea></div><div class="row"><button class="btn light" onclick="closeM()">ОТМЕНА</button><button class="btn" onclick="createF()">ОПУБЛИКОВАТЬ</button></div>`
+        );
+      window.createF = () => {
+        if (!ft.value.trim() || !fx.value.trim()) return toast('Заполните поля');
+        S.forum.unshift({ t: ft.value.trim(), x: fx.value.trim(), n: 0 });
+        save();
+        closeM();
+        toast('Тема опубликована')
+      };
+
+      // ===== MAPS =====
+      const map = L.map('map', { center: [55.752, 37.620], zoom: 14, zoomControl: false, attributionControl: false });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 })
+        .addTo(map);
+
+      const hm = L.map('homeMap', { center: [55.752, 37.620], zoom: 13, zoomControl: false, attributionControl: false,
+        dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false, boxZoom: false,
+        keyboard: false });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 })
+        .addTo(hm);
+
+      let layers = [];
+
+      function renderMap() {
+        layers.forEach(x => { map.removeLayer(x);
+          hm.removeLayer(x) });
+        layers = [];
+        S.points.forEach(p => {
+          let ic = L.divIcon({ className: '', html: `<div class="pin">${p.t}</div>`, iconSize: [30, 30],
+            iconAnchor: [15, 15] });
+          let a = L.marker([p.a, p.b], { icon: ic }).bindPopup('<b>' + p.x + '</b><br><small>21 · район</small>');
+          let b = L.marker([p.a, p.b], { icon: ic });
+          a.addTo(map);
+          b.addTo(hm);
+          layers.push(a, b);
+        });
+        pointsN.textContent = S.points.length;
+        setTimeout(() => { map.invalidateSize();
+          hm.invalidateSize() }, 100)
+      }
+
+      window.addPoint = () => {
+        S.points.push({ a: 55.748 + Math.random() * .014, b: 37.612 + Math.random() * .018, t: '+', x: 'Новая точка' });
+        save();
+        renderMap();
+        toast('Точка добавлена')
+      };
+
+      renderMap();
+      render();
+
+      // ===== CLOCK =====
+      function clk() {
+        let d = new Date();
+        clock.textContent = [d.getHours(), d.getMinutes()].map(x => String(x).padStart(2, '0')).join(':') + '  ●';
+      }
+      clk();
+      setInterval(clk, 1000);
+
+    })();
+  </script>
+</body>
+</html>
