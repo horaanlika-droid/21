@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>21 — Городская экосистема</title>
+
+    <!-- Современные шрифты -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&family=Press+Start+2P&display=swap" rel="stylesheet" />
+    <!-- Leaflet для карты -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        /* ============================================================
+           ГЛОБАЛЬНЫЙ СТИЛЬ (современный + пиксельный акцент)
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #0f0f0f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 16px;
+        }
+
+        .phone {
+            width: 390px;
+            height: 780px;
+            background: #ffffff;
+            border-radius: 44px;
+            padding: 16px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .screen {
+            flex: 1;
+            background: #f5f2eb;
+            border-radius: 28px;
+            padding: 20px 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+            scroll-behavior: smooth;
+        }
+
+        .screen::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at 20% 30%, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+            background-size: 4px 4px;
+            pointer-events: none;
+            z-index: 0;
+            border-radius: 28px;
+        }
+        .screen>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        .screen::-webkit-scrollbar {
+            width: 4px;
+        }
+        .screen::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .screen::-webkit-scrollbar-thumb {
+            background: #222;
+            border-radius: 4px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(34, 34, 34, 0.08);
+            margin-bottom: 4px;
+        }
+        .header .title {
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            font-size: 18px;
+            letter-spacing: 1px;
+            color: #222;
+        }
+        .header .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #555;
+        }
+        .badge-volunteer {
+            background: #222;
+            color: #f5f2eb;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            animation: pulse 2s infinite;
+        }
+
+        #map {
+            height: 200px;
+            border-radius: 16px;
+            border: 1px solid rgba(34, 34, 34, 0.08);
+            background: #f5f2eb;
+            overflow: hidden;
+            transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        .leaflet-tile-pane {
+            filter: grayscale(100%) contrast(150%) brightness(1.1);
+        }
+        .leaflet-control-zoom {
+            border: 1px solid rgba(34, 34, 34, 0.1) !important;
+            background: #f5f2eb !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+            border-radius: 12px !important;
+            overflow: hidden;
+        }
+        .leaflet-control-zoom a {
+            color: #222 !important;
+            font-family: 'Inter', sans-serif !important;
+            background: #f5f2eb !important;
+            border-bottom: 1px solid rgba(34, 34, 34, 0.05) !important;
+            font-size: 16px !important;
+            font-weight: 300 !important;
+            padding: 6px 10px !important;
+        }
+        .leaflet-popup-content-wrapper {
+            background: #f5f2eb !important;
+            border: 1px solid rgba(34, 34, 34, 0.08) !important;
+            border-radius: 16px !important;
+            font-family: 'Inter', sans-serif !important;
+            color: #222 !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06) !important;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        .stat-card {
+            background: #ffffff;
+            border: 1px solid rgba(34, 34, 34, 0.06);
+            border-radius: 16px;
+            padding: 10px 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+        }
+        .stat-card:nth-child(1) { animation-delay: 0.05s; }
+        .stat-card:nth-child(2) { animation-delay: 0.1s; }
+        .stat-card:nth-child(3) { animation-delay: 0.15s; }
+        .stat-card:active {
+            transform: scale(0.96);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+        }
+        .stat-card .number {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #222;
+            line-height: 1.2;
+        }
+        .stat-card .label {
+            font-size: 11px;
+            font-weight: 500;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .progress-wrap {
+            margin: 2px 0;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 500;
+            color: #444;
+        }
+        .progress-label span:last-child {
+            font-weight: 600;
+            color: #222;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e8e5df;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            background: #222;
+            border-radius: 8px;
+            width: 0%;
+            transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .badges-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .badge-item {
+            padding: 4px 14px;
+            border: 1px solid rgba(34, 34, 34, 0.1);
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #ffffff;
+            color: #222;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+        }
+        .badge-item.active {
+            background: #222;
+            color: #f5f2eb;
+            border-color: #222;
+        }
+        .badge-item.locked {
+            opacity: 0.3;
+            filter: grayscale(1);
+        }
+
+        .character-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: #ffffff;
+            border: 1px solid rgba(34, 34, 34, 0.06);
+            border-radius: 16px;
+            padding: 12px 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
+        }
+        .avatar-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 56px;
+        }
+        .avatar-container svg {
+            width: 48px;
+            height: 48px;
+            image-rendering: pixelated;
+        }
+        .avatar-container .wave-hand {
+            animation: wave 2.5s infinite ease-in-out;
+            transform-origin: top right;
+        }
+        .character-info {
+            flex: 1;
+        }
+        .character-info .name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #222;
+        }
+        .character-info .level {
+            font-size: 13px;
+            color: #888;
+        }
+        .character-info .skills {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        @keyframes wave {
+            0%,
+            100% { transform: rotate(0deg); }
+            50% { transform: rotate(-8deg); }
+        }
+
+        .chat-box {
+            background: #ffffff;
+            border: 1px solid rgba(34, 34, 34, 0.06);
+            border-radius: 16px;
+            padding: 12px 14px;
+            max-height: 100px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+        .chat-box .msg {
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(34, 34, 34, 0.04);
+            animation: fadeUp 0.3s ease;
+        }
+        .chat-box .msg:last-child {
+            border-bottom: none;
+        }
+        .chat-box .msg .who {
+            font-weight: 600;
+            color: #222;
+        }
+        .chat-box .msg .who.ai {
+            color: #555;
+        }
+        .chat-box .msg .who.system {
+            color: #999;
+            font-style: italic;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .chat-input-row input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid rgba(34, 34, 34, 0.08);
+            border-radius: 40px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            background: #ffffff;
+            color: #222;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+        .chat-input-row input:focus {
+            border-color: #222;
+        }
+        .chat-input-row input::placeholder {
+            color: #bbb;
+        }
+        .chat-input-row .btn {
+            flex: 0 0 auto;
+            padding: 10px 18px;
+            border-radius: 40px;
+            background: #222;
+            color: #f5f2eb;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .chat-input-row .btn:active {
+            transform: scale(0.94);
+        }
+
+        .quest-list {
+            background: #ffffff;
+            border: 1px solid rgba(34, 34, 34, 0.06);
+            border-radius: 16px;
+            padding: 8px 12px;
+            max-height: 80px;
+            overflow-y: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+        .quest-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(34, 34, 34, 0.04);
+            animation: fadeUp 0.25s ease;
+        }
+        .quest-item:last-child {
+            border-bottom: none;
+        }
+        .quest-item .take-btn {
+            background: #222;
+            color: #f5f2eb;
+            border: none;
+            border-radius: 40px;
+            padding: 2px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            margin-left: auto;
+            transition: all 0.15s ease;
+        }
+        .quest-item .take-btn:active {
+            transform: scale(0.94);
+        }
+
+        .district-stats {
+            background: #ffffff;
+            border: 1px solid rgba(34, 34, 34, 0.06);
+            border-radius: 16px;
+            padding: 12px 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+        .district-stats .header {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+            border: none;
+            padding: 0;
+        }
+        .district-stats .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        .district-stats .stat-box {
+            text-align: center;
+            padding: 6px 4px;
+            background: rgba(34, 34, 34, 0.02);
+            border-radius: 12px;
+        }
+        .district-stats .stat-box .num {
+            font-weight: 700;
+            font-size: 18px;
+            color: #222;
+        }
+        .district-stats .stat-box .lbl {
+            font-size: 10px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            flex: 1;
+            min-width: 60px;
+            padding: 10px 0;
+            border-radius: 40px;
+            background: #222;
+            color: #f5f2eb;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+        }
+        .btn:active {
+            transform: scale(0.94);
+            background: #444;
+        }
+        .btn.secondary {
+            background: transparent;
+            color: #222;
+            border: 1px solid rgba(34, 34, 34, 0.1);
+        }
+        .btn.secondary:active {
+            background: rgba(34, 34, 34, 0.04);
+        }
+        .btn:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .btn.small {
+            flex: 0 1 auto;
+            padding: 4px 14px;
+            font-size: 12px;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 24px 20px;
+            max-width: 360px;
+            width: 100%;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+            animation: modalSlide 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: scale(0.94) translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .modal h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .modal label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            margin: 12px 0 4px;
+        }
+        .modal select,
+        .modal input,
+        .modal textarea {
+            width: 100%;
+            padding: 10px 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            border: 1px solid rgba(34, 34, 34, 0.08);
+            border-radius: 12px;
+            background: #f5f2eb;
+            color: #222;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+        .modal select:focus,
+        .modal input:focus,
+        .modal textarea:focus {
+            border-color: #222;
+            background: #f0ede6;
+        }
+        .modal textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        .modal .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .modal .btn-row .btn {
+            flex: 1;
+            padding: 12px 0;
+            font-size: 15px;
+        }
+        .modal .btn-row .btn.cancel {
+            background: transparent;
+            color: #222;
+            border: 1px solid rgba(34, 34, 34, 0.1);
+        }
+
+        @keyframes pulse {
+            0%,
+            100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes karmaFly {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(0.6);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-70px) scale(1.2);
+            }
+        }
+
+        .karma-fly {
+            position: fixed;
+            font-size: 48px;
+            font-weight: 700;
+            color: #222;
+            pointer-events: none;
+            z-index: 999;
+            font-family: 'Inter', sans-serif;
+            animation: karmaFly 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .pixel-icon {
+            font-family: 'Press Start 2P', monospace;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 420px) {
+            .phone {
+                width: 100%;
+                height: 95vh;
+                border-radius: 28px;
+                padding: 12px;
+            }
+            .screen {
+                padding: 16px 12px;
+                border-radius: 20px;
+            }
+            .stats-grid {
+                gap: 6px;
+            }
+            .stat-card .number {
+                font-size: 20px;
+            }
+            .avatar-container svg {
+                width: 40px;
+                height: 40px;
+            }
+            .header .title {
+                font-size: 16px;
+            }
+            .chat-box {
+                max-height: 70px;
+                font-size: 13px;
+            }
+            .quest-list {
+                max-height: 60px;
+            }
+            .modal {
+                max-width: 100%;
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="screen">
+
+            <!-- ШАПКА -->
+            <div class="header">
+                <span class="title pixel-icon">21</span>
+                <span class="status">
+                    <span id="volunteerBadge" class="badge-volunteer" style="display:none;">⚡ волонтёр</span>
+                    <span>●</span>
+                </span>
+            </div>
+
+            <!-- КАРТА -->
+            <div id="map"></div>
+
+            <!-- ИНФОГРАФИКА -->
+            <div class="stats-grid">
+                <div class="stat-card"><div class="number" id="karmaDisplay">+0</div><div class="label">карма</div></div>
+                <div class="stat-card"><div class="number" id="xpDisplay">0</div><div class="label">xp</div></div>
+                <div class="stat-card"><div class="number" id="doneDisplay">0</div><div class="label">выполнено</div></div>
+            </div>
+
+            <!-- ПРОГРЕСС -->
+            <div class="progress-wrap">
+                <div class="progress-label"><span>Уровень</span><span id="levelLabel">1</span></div>
+                <div class="progress-bar"><div class="fill" id="xpBar" style="width:0%;"></div></div>
+            </div>
+
+            <!-- АЧИВКИ -->
+            <div class="badges-row" id="badgesContainer">
+                <span class="badge-item locked">🔧 1</span>
+                <span class="badge-item locked">📚 5</span>
+                <span class="badge-item locked">🌟 10</span>
+                <span class="badge-item locked">🏆 25</span>
+            </div>
+
+            <!-- ПЕРСОНАЖ -->
+            <div class="character-card">
+                <div class="avatar-container" id="avatarContainer"></div>
+                <div class="character-info">
+                    <div class="name" id="charName">Исследователь</div>
+                    <div class="level">уровень <span id="charLevel">1</span></div>
+                    <div class="skills" id="charSkills">навыки: загрузка...</div>
+                </div>
+                <button class="btn small secondary" onclick="cycleAvatar()" style="flex:0 0 auto; padding:4px 12px; font-size:16px;">🎭</button>
+            </div>
+
+            <!-- ЧАТ -->
+            <div class="chat-box" id="chatBox">
+                <div class="msg"><span class="who ai">🤖 AI:</span> <span class="text">Привет! Я AI-агент 21 в стиле японских инди-игр. Спрашивай!</span></div>
+            </div>
+            <div class="chat-input-row">
+                <input type="text" id="chatInput" placeholder="Спроси AI..." />
+                <button class="btn" id="chatSendBtn">➤</button>
+            </div>
+
+            <!-- ЗАДАНИЯ -->
+            <div class="quest-list" id="questList"><div style="color:#999; font-size:13px; padding:6px 0;">Нет открытых заданий</div></div>
+
+            <!-- РАЙОН -->
+            <div class="district-stats">
+                <div class="header">🏙️ Живой район</div>
+                <div class="grid" id="districtGrid">
+                    <div class="stat-box"><div class="num" id="statSolved">0/0</div><div class="lbl">проблем</div></div>
+                    <div class="stat-box"><div class="num" id="statUsers">0</div><div class="lbl">активных</div></div>
+                    <div class="stat-box"><div class="num" id="statCourts">0</div><div class="lbl">судов</div></div>
+                </div>
+                <div id="districtProblems" style="font-size:12px; color:#777; padding:4px 0;"></div>
+            </div>
+
+            <!-- КНОПКИ -->
+            <div class="btn-row">
+                <button class="btn secondary" id="btnAddTask" disabled>📝 Создать</button>
+                <button class="btn secondary" id="btnRefresh">⟳</button>
+                <button class="btn secondary" id="btnVolunteer">⚡ Стать волонтёром</button>
+                <button class="btn secondary" id="btnCourt">⚖️ Суд</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- МОДАЛКИ -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h3>📝 Создать задание</h3>
+            <label>Категория</label>
+            <select id="categorySelect">
+                <option value="problem">⚠️ Проблема</option>
+                <option value="help">🤝 Помощь</option>
+                <option value="sticker">🏷️ Стикер 21</option>
+            </select>
+            <label>Название</label>
+            <input type="text" id="labelInput" placeholder="Коротко" />
+            <label>Описание</label>
+            <textarea id="descInput" placeholder="Детали"></textarea>
+            <div class="btn-row">
+                <button class="btn cancel" id="modalCancel">Отмена</button>
+                <button class="btn" id="modalSubmit">✅ Опубликовать</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="courtModal">
+        <div class="modal">
+            <h3>⚖️ Суд сообщества</h3>
+            <label>Название спора</label>
+            <input type="text" id="courtTitle" placeholder="О чём спор?" />
+            <label>Описание</label>
+            <textarea id="courtDesc" placeholder="Детали конфликта..."></textarea>
+            <div class="btn-row">
+                <button class="btn cancel" id="courtCancel">Отмена</button>
+                <button class="btn" id="courtSubmit">⚖️ Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            // СОСТОЯНИЕ
+            // ============================================================
+            const STORAGE_KEY = '21_app_v5';
+
+            const defaultState = {
+                tasks: [
+                    { id: 't1', type: 'problem', lat: 55.751244, lon: 37.618423, label: 'Сломанный бордюр',
+                        desc: 'Трещина, нужно залить цементом', status: 'open', author: 'Анна' },
+                    { id: 't2', type: 'help', lat: 55.755864, lon: 37.617698, label: 'Перевезти диван',
+                        desc: '2 этаж, подъезд 3, нужны руки', status: 'open', author: 'Игорь' },
+                ],
+                isVolunteer: false,
+                karma: 0,
+                xp: 0,
+                done: 0,
+                character: {
+                    name: 'Исследователь',
+                    level: 1,
+                    xp: 0,
+                    xpToNext: 100,
+                    head: 'default',
+                    body: 'default',
+                    accessory: null,
+                    emotion: 'neutral',
+                    skills: { repair: 0, help: 0, books: 0, nature: 0, city: 0 },
+                },
+                district: {
+                    name: 'Центральный',
+                    problems: [
+                        { id: 'p1', type: 'repair', lat: 55.751244, lon: 37.618423, label: 'Яма на дороге',
+                            desc: 'Опасная яма', status: 'open', votes: 3, reportedBy: 'Сосед' },
+                    ],
+                    conflicts: [],
+                    stats: { totalProblems: 0, solvedProblems: 0, activeUsers: 2 },
+                }
+            };
+
+            let state = {};
+
+            function deepMerge(a, b) {
+                const r = { ...a };
+                for (const k in b) {
+                    if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) {
+                        r[k] = deepMerge(a[k] || {}, b[k]);
+                    } else {
+                        r[k] = b[k];
+                    }
+                }
+                return r;
+            }
+
+            function loadState() {
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEY);
+                    state = saved ? deepMerge(defaultState, JSON.parse(saved)) : JSON.parse(JSON.stringify(defaultState));
+                } catch (e) {
+                    state = JSON.parse(JSON.stringify(defaultState));
+                }
+                state.character.xp = state.xp;
+                recalcLevel();
+            }
+
+            function recalcLevel() {
+                let lvl = 1,
+                    xp = state.xp,
+                    next = 100;
+                while (xp >= next) {
+                    xp -= next;
+                    lvl += 1;
+                    next = Math.floor(next * 1.3) + 20;
+                }
+                state.character.level = lvl;
+                state.character.xpToNext = next;
+            }
+
+            function saveState() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                updateUI();
+            }
+
+            // ============================================================
+            // КАРТА
+            // ============================================================
+            const map = L.map('map', {
+                center: [55.751244, 37.618423],
+                zoom: 13,
+                zoomControl: true,
+                fadeAnimation: false,
+                zoomAnimation: false,
+                markerZoomAnimation: false,
+            });
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap, &copy; CartoDB',
+                subdomains: 'abcd',
+                maxZoom: 19,
+            }).addTo(map);
+
+            let markers = {};
+
+            function getMarkerIcon(type) {
+                const emoji = type === 'sticker' ? '21' : type === 'problem' ? '⚠️' : '🤝';
+                const bg = type === 'sticker' ? '#222' : type === 'problem' ? '#222' : '#f5f2eb';
+                const color = type === 'sticker' ? '#f5f2eb' : type === 'problem' ? '#f5f2eb' : '#222';
+                return L.divIcon({
+                    html: `<div style="width:32px;height:32px;border-radius:50%;background:${bg};color:${color};border:1px solid rgba(34,34,34,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;font-family:'Inter',sans-serif;">${emoji}</div>`,
+                    className: '',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                });
+            }
+
+            function renderMap() {
+                Object.values(markers).forEach(m => map.removeLayer(m));
+                markers = {};
+                state.tasks.forEach(t => {
+                    if (t.status === 'done') return;
+                    const icon = getMarkerIcon(t.type);
+                    const marker = L.marker([t.lat, t.lon], { icon, riseOnHover: true });
+                    marker.bindPopup(
+                        `<b>${t.label}</b><br>${t.desc || ''}<br><span style="color:#888;font-size:11px;">${t.status === 'open' ? '🔴 Открыто' : '🟡 В работе'}</span>`
+                        );
+                    marker.addTo(map);
+                    markers[t.id] = marker;
+                });
+                state.district.problems.forEach(p => {
+                    if (p.status === 'solved') return;
+                    const icon = L.divIcon({
+                        html: `<div style="width:26px;height:26px;border-radius:50%;background:#222;color:#f5f2eb;border:1px solid rgba(34,34,34,0.1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">⚠️</div>`,
+                        className: '',
+                        iconSize: [26, 26],
+                        iconAnchor: [13, 13],
+                    });
+                    const marker = L.marker([p.lat, p.lon], { icon, riseOnHover: true });
+                    marker.bindPopup(`<b>${p.label}</b><br>${p.desc}<br><span style="color:#888;">голосов: ${p.votes}</span>`);
+                    marker.addTo(map);
+                    markers['p_' + p.id] = marker;
+                });
+                setTimeout(() => map.invalidateSize(), 100);
+            }
+
+            // ============================================================
+            // ПЕРСОНАЖ
+            // ============================================================
+            function getAvatarSVG(head, body, accessory, emotion) {
+                const mouth = emotion === 'happy' ? 'rect x="22" y="20" width="4" height="2" fill="#f5f2eb"' :
+                    emotion === 'determined' ? 'rect x="20" y="20" width="8" height="2" fill="#f5f2eb"' :
+                    'rect x="22" y="20" width="4" height="2" fill="#f5f2eb"';
+                const headColor = head === 'helmet' ? '#555' : head === 'beanie' ? '#888' : '#222';
+                const headExtra = head === 'helmet' ?
+                    '<rect x="12" y="4" width="24" height="6" fill="#555"/><rect x="10" y="6" width="4" height="4" fill="#555"/><rect x="34" y="6" width="4" height="4" fill="#555"/>' :
+                    head === 'beanie' ?
+                    '<rect x="12" y="4" width="24" height="8" fill="#888"/><circle cx="16" cy="6" r="3" fill="#888"/><circle cx="32" cy="6" r="3" fill="#888"/>' :
+                    '<rect x="12" y="4" width="24" height="6" fill="#222"/><rect x="10" y="6" width="4" height="4" fill="#222"/><rect x="34" y="6" width="4" height="4" fill="#222"/>';
+                const bodyColor = body === 'cape' ? '#555' : body === 'jacket' ? '#444' : '#222';
+                const bodyExtra = body === 'cape' ?
+                    '<rect x="12" y="22" width="24" height="16" fill="#555" rx="2"/><rect x="12" y="36" width="24" height="4" fill="#555"/>' :
+                    body === 'jacket' ?
+                    '<rect x="14" y="22" width="20" height="14" fill="#444" rx="2"/><rect x="14" y="30" width="20" height="2" fill="#f5f2eb"/>' :
+                    '';
+                const acc = accessory ? {
+                    'glasses': '<rect x="16" y="12" width="16" height="6" fill="none" stroke="#f5f2eb" stroke-width="2"/><rect x="16" y="12" width="4" height="4" fill="none" stroke="#f5f2eb" stroke-width="1"/><rect x="28" y="12" width="4" height="4" fill="none" stroke="#f5f2eb" stroke-width="1"/>',
+                    'backpack': '<rect x="28" y="24" width="8" height="12" fill="#555" rx="2"/><rect x="30" y="22" width="4" height="4" fill="#555"/>',
+                } [accessory] : '';
+                return `<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                            <ellipse cx="24" cy="44" rx="12" ry="3" fill="#ccc" opacity="0.4"/>
+                            <rect x="18" y="36" width="4" height="8" fill="#222"/>
+                            <rect x="26" y="36" width="4" height="8" fill="#222"/>
+                            ${bodyExtra || `<rect x="16" y="22" width="16" height="14" fill="${bodyColor}" rx="2"/>
+                            <rect x="16" y="30" width="16" height="2" fill="#f5f2eb"/>`}
+                            <rect x="12" y="24" width="4" height="12" fill="#222"/>
+                            <rect x="32" y="24" width="4" height="12" fill="#222"/>
+                            <rect x="10" y="34" width="6" height="4" fill="#222"/>
+                            <rect x="32" y="34" width="6" height="4" fill="#222"/>
+                            <rect x="14" y="6" width="20" height="18" fill="${headColor}" rx="3"/>
+                            ${headExtra}
+                            <rect x="18" y="12" width="4" height="4" fill="#f5f2eb"/>
+                            <rect x="26" y="12" width="4" height="4" fill="#f5f2eb"/>
+                            <rect x="20" y="14" width="2" height="2" fill="#222"/>
+                            <rect x="28" y="14" width="2" height="2" fill="#222"/>
+                            ${mouth}
+                            ${acc}
+                            <rect x="34" y="18" width="4" height="6" fill="#222" class="wave-hand"/>
+                        </svg>`;
+            }
+
+            // ============================================================
+            // UI
+            // ============================================================
+            function updateUI() {
+                document.getElementById('karmaDisplay').textContent = '+' + state.karma;
+                document.getElementById('xpDisplay').textContent = state.xp;
+                document.getElementById('doneDisplay').textContent = state.done;
+
+                const xpPercent = state.character.xpToNext > 0 ?
+                    Math.min((state.character.xp / state.character.xpToNext) * 100, 100) :
+                    0;
+                document.getElementById('xpBar').style.width = xpPercent + '%';
+                document.getElementById('levelLabel').textContent = state.character.level;
+
+                const badgeDefs = [
+                    { label: '🔧 1', need: 1 },
+                    { label: '📚 5', need: 5 },
+                    { label: '🌟 10', need: 10 },
+                    { label: '🏆 25', need: 25 },
+                ];
+                let html = '';
+                badgeDefs.forEach(b => {
+                    const unlocked = state.done >= b.need;
+                    html += `<span class="badge-item ${unlocked ? 'active' : 'locked'}">${b.label}</span>`;
+                });
+                document.getElementById('badgesContainer').innerHTML = html;
+
+                document.getElementById('volunteerBadge').style.display = state.isVolunteer ? 'inline-block' : 'none';
+                document.getElementById('btnAddTask').disabled = !state.isVolunteer;
+
+                const c = state.character;
+                document.getElementById('charName').textContent = c.name;
+                document.getElementById('charLevel').textContent = c.level;
+                document.getElementById('charSkills').textContent =
+                    `ремонт ${c.skills.repair}% · помощь ${c.skills.help}% · книги ${c.skills.books}%`;
+                document.getElementById('avatarContainer').innerHTML = getAvatarSVG(
+                    c.head, c.body, c.accessory, c.emotion
+                );
+
+                updateDistrictUI();
+                renderTaskList();
+            }
+
+            // ============================================================
+            // РАЙОН
+            // ============================================================
+            function updateDistrictUI() {
+                const d = state.district;
+                const solved = d.problems.filter(p => p.status === 'solved').length;
+                const total = d.problems.length;
+                document.getElementById('statSolved').textContent = solved + '/' + total;
+                document.getElementById('statUsers').textContent = d.stats.activeUsers || 0;
+                document.getElementById('statCourts').textContent = d.conflicts.filter(c => c.status === 'resolved')
+                .length;
+
+                const container = document.getElementById('districtProblems');
+                const open = d.problems.filter(p => p.status !== 'solved');
+                if (!open.length) {
+                    container.innerHTML = '<span style="color:#999;">Все проблемы решены</span>';
+                    return;
+                }
+                let html = '';
+                open.forEach(p => {
+                    html +=
+                        `<div style="display:flex;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid rgba(34,34,34,0.04);">
+                                <span>${p.votes >= 5 ? '🗳️' : '📌'}</span>
+                                <span style="flex:1;">${p.label}</span>
+                                <span style="font-size:11px;color:#999;">${p.votes} гол.</span>
+                                ${p.votes < 5 ? `<button class="btn small secondary" onclick="window.voteProblem('${p.id}')" style="font-size:10px;padding:2px 8px;">👍</button>` : ''}
+                            </div>`;
+                });
+                container.innerHTML = html;
+            }
+
+            // ============================================================
+            // ЗАДАНИЯ
+            // ============================================================
+            function renderTaskList() {
+                const container = document.getElementById('questList');
+                const open = state.tasks.filter(t => t.status === 'open');
+                if (!open.length) {
+                    container.innerHTML = '<div style="color:#999;font-size:13px;padding:6px 0;">Нет открытых заданий</div>';
+                    return;
+                }
+                let html = '';
+                open.forEach(t => {
+                    html += `
+                            <div class="quest-item">
+                                <span>${t.type === 'problem' ? '⚠️' : t.type === 'help' ? '🤝' : '🏷️'}</span>
+                                <span style="flex:1;">${t.label}</span>
+                                <button class="take-btn" data-id="${t.id}">Взять</button>
+                            </div>
+                        `;
+                });
+                container.innerHTML = html;
+                container.querySelectorAll('.take-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        takeTask(this.dataset.id);
+                    });
+                });
+            }
+
+            function takeTask(id) {
+                const task = state.tasks.find(t => t.id === id);
+                if (!task || task.status !== 'open') return;
+                task.status = 'taken';
+                task.volunteer = 'Пользователь';
+                addKarma(1);
+                addXP(10);
+                addChatMessage('Ты взял задание "' + task.label + '"', 'user');
+                saveState();
+                renderMap();
+            }
+
+            // ============================================================
+            // КАРМА + XP
+            // ============================================================
+            function addKarma(amount) {
+                state.karma += amount;
+                const fly = document.createElement('div');
+                fly.className = 'karma-fly';
+                fly.textContent = '+';
+                fly.style.left = (window.innerWidth / 2 - 24) + 'px';
+                fly.style.top = (window.innerHeight / 2 - 40) + 'px';
+                document.body.appendChild(fly);
+                setTimeout(() => fly.remove(), 800);
+                saveState();
+            }
+
+            function addXP(amount) {
+                state.xp += amount;
+                state.done += 1;
+                recalcLevel();
+                saveState();
+            }
+
+            // ============================================================
+            // ЧАТ (имитация)
+            // ============================================================
+            function addChatMessage(text, who) {
+                const box = document.getElementById('chatBox');
+                const whoLabel = who === 'user' ? '👤 Ты:' : who === 'system' ? '📢' : '🤖 AI:';
+                const cls = who === 'user' ? '' : who === 'system' ? 'system' : 'ai';
+                box.innerHTML +=
+                    `<div class="msg"><span class="who ${cls}">${whoLabel}</span> <span class="text">${text}</span></div>`;
+                box.scrollTop = box.scrollHeight;
+            }
+
+            function simulateAI(prompt) {
+                const p = prompt.toLowerCase();
+                if (p.includes('ремонт') || p.includes('бордюр')) return '🔧 Для ремонта бордюра нужен цемент, вода и шпатель. Смешай 1:3, залей, разровняй. 15 минут — и готово!';
+                if (p.includes('книга')) return '📚 Книги обменивают в шкафу у дома 10. Принеси свою — возьми другую!';
+                if (p.includes('суд')) return '⚖️ Суд сообщества решает споры голосованием. Создай спор в приложении!';
+                if (p.includes('волонтёр')) return '⚡ Выполни 2 задания и стань волонтёром!';
+                return '🎮 Я AI-агент 21. Спрашивай о ремонте, книгах, суде или волонтёрстве!';
+            }
+
+            async function askAI(prompt) {
+                return simulateAI(prompt);
+            }
+
+            // ============================================================
+            // ЧАТ ОТПРАВКА
+            // ============================================================
+            const chatInput = document.getElementById('chatInput');
+
+            async function sendChat() {
+                const text = chatInput.value.trim();
+                if (!text) return;
+                chatInput.value = '';
+                addChatMessage(text, 'user');
+
+                const typingId = 'typing_' + Date.now();
+                const box = document.getElementById('chatBox');
+                box.innerHTML +=
+                    `<div class="msg" id="${typingId}"><span class="who ai">🤖 AI:</span> <span class="text">...печатает</span></div>`;
+                box.scrollTop = box.scrollHeight;
+
+                const reply = await askAI(text);
+                document.getElementById(typingId)?.remove();
+                addChatMessage(reply, 'ai');
+                if (reply.includes('молодец') || reply.includes('отлично')) addKarma(1);
+            }
+
+            document.getElementById('chatSendBtn').addEventListener('click', sendChat);
+            chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChat(); });
+
+            // ============================================================
+            // МОДАЛКИ
+            // ============================================================
+            const modal = document.getElementById('modalOverlay');
+            document.getElementById('btnAddTask').addEventListener('click', function() {
+                if (!state.isVolunteer) return alert('Только волонтёры могут создавать задания.');
+                if (!navigator.geolocation) return alert('Геолокация не поддерживается.');
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        window._pending = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+                        modal.classList.add('active');
+                        document.getElementById('labelInput').value = '';
+                        document.getElementById('descInput').value = '';
+                    },
+                    () => alert('Не удалось определить местоположение.'),
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            });
+            document.getElementById('modalCancel').addEventListener('click', () => modal.classList.remove('active'));
+            document.getElementById('modalSubmit').addEventListener('click', function() {
+                if (!window._pending) return;
+                const type = document.getElementById('categorySelect').value;
+                const label = document.getElementById('labelInput').value.trim() || 'Без названия';
+                const desc = document.getElementById('descInput').value.trim();
+                state.tasks.push({
+                    id: 't' + Date.now(),
+                    type,
+                    lat: window._pending.lat,
+                    lon: window._pending.lon,
+                    label,
+                    desc,
+                    status: 'open',
+                    author: 'Волонтёр',
+                });
+                saveState();
+                renderMap();
+                modal.classList.remove('active');
+                map.setView([window._pending.lat, window._pending.lon], 16);
+                addChatMessage('Новое задание "' + label + '" опубликовано!', 'ai');
+            });
+
+            // Суд
+            const courtModal = document.getElementById('courtModal');
+            document.getElementById('btnCourt').addEventListener('click', () => {
+                courtModal.classList.add('active');
+                document.getElementById('courtTitle').value = '';
+                document.getElementById('courtDesc').value = '';
+            });
+            document.getElementById('courtCancel').addEventListener('click', () => courtModal.classList.remove('active'));
+            document.getElementById('courtSubmit').addEventListener('click', function() {
+                const title = document.getElementById('courtTitle').value.trim();
+                if (!title) return alert('Введите название спора');
+                state.district.conflicts.push({
+                    id: 'c' + Date.now(),
+                    title,
+                    desc: document.getElementById('courtDesc').value.trim() || 'Спор сообщества',
+                    status: 'open',
+                    votesFor: 0,
+                    votesAgainst: 0,
+                    createdBy: 'Пользователь',
+                    createdAt: new Date().toISOString(),
+                });
+                saveState();
+                courtModal.classList.remove('active');
+                addChatMessage('⚖️ Создан судебный спор: ' + title, 'system');
+            });
+
+            // ============================================================
+            // ВОЛОНТЁРСТВО
+            // ============================================================
+            document.getElementById('btnVolunteer').addEventListener('click', function() {
+                if (state.isVolunteer) return alert('Ты уже волонтёр!');
+                if (state.done < 2) return alert('Нужно выполнить хотя бы 2 задания, чтобы стать волонтёром.');
+                state.isVolunteer = true;
+                saveState();
+                alert('🎉 Ты стал волонтёром!');
+            });
+
+            // ============================================================
+            // ГОЛОСОВАНИЕ
+            // ============================================================
+            window.voteProblem = function(id) {
+                const p = state.district.problems.find(p => p.id === id);
+                if (!p || p.status !== 'open') return;
+                p.votes += 1;
+                if (p.votes >= 5) {
+                    p.status = 'voting';
+                    addChatMessage('🗳️ Проблема "' + p.label + '" перешла в голосование!', 'system');
+                }
+                saveState();
+            };
+
+            // ============================================================
+            // ПЕРСОНАЖ
+            // ============================================================
+            const headOpts = ['default', 'helmet', 'beanie'];
+            let headIdx = 0;
+            window.cycleAvatar = function() {
+                headIdx = (headIdx + 1) % headOpts.length;
+                state.character.head = headOpts[headIdx];
+                saveState();
+            };
+
+            // ============================================================
+            // ОБНОВЛЕНИЕ
+            // ============================================================
+            document.getElementById('btnRefresh').addEventListener('click', function() {
+                loadState();
+                renderMap();
+                updateUI();
+                addChatMessage('🔄 Обновлено', 'system');
+            });
+
+            // ============================================================
+            // ЗАПУСК
+            // ============================================================
+            loadState();
+            renderMap();
+            updateUI();
+
+            setTimeout(() => {
+                addChatMessage(
+                    '🎮 Привет! Я AI-агент 21. Спрашивай о ремонте, книгах, суде или волонтёрстве. Всё работает локально!',
+                    'ai');
+            }, 500);
+
+            setInterval(() => addKarma(1), 45000);
+
+            console.log('🟢 Приложение "21" (современный фронтенд + пиксель-эстетика) запущено!');
+        })();
+    </script>
+</body>
+</html>
