@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>21 — Городская экосистема</title>
+
+    <!-- Leaflet для карты -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        /* ============================================================
+           СТИЛИ (E-ink + японский инди-пиксель-арт)
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', 'MS Sans Serif', monospace;
+            padding: 10px;
+        }
+
+        .phone {
+            width: 390px;
+            height: 780px;
+            background: #f5f2eb;
+            border-radius: 40px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 0 0 2px #333;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .screen {
+            flex: 1;
+            background: #f5f2eb;
+            border-radius: 20px;
+            padding: 16px 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.03);
+        }
+
+        .screen::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at 20% 30%, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+            background-size: 4px 4px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .screen>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== ШАПКА ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #222;
+            font-size: 14px;
+        }
+        .header .title {
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .header .status {
+            font-size: 12px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .badge-volunteer {
+            background: #222;
+            color: #f5f2eb;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-size: 10px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        /* ===== КАРТА ===== */
+        #map {
+            height: 150px;
+            border-radius: 12px;
+            border: 2px solid #222;
+            background: #f5f2eb;
+            overflow: hidden;
+            transition: height 0.3s ease;
+        }
+
+        .leaflet-tile-pane {
+            filter: grayscale(100%) contrast(150%) brightness(1.1);
+        }
+        .leaflet-control-zoom {
+            border: 2px solid #222 !important;
+            background: #f5f2eb !important;
+            box-shadow: none !important;
+        }
+        .leaflet-control-zoom a {
+            color: #222 !important;
+            font-family: 'Courier New', monospace !important;
+            background: #f5f2eb !important;
+            border-bottom: 1px solid #222 !important;
+        }
+        .leaflet-popup-content-wrapper {
+            background: #f5f2eb !important;
+            border: 2px solid #222 !important;
+            border-radius: 0 !important;
+            font-family: 'Courier New', monospace !important;
+            color: #222 !important;
+            box-shadow: none !important;
+        }
+
+        /* ===== ИНФОГРАФИКА ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 4px;
+        }
+        .stat-card {
+            background: #f5f2eb;
+            border: 2px solid #222;
+            border-radius: 8px;
+            padding: 4px 2px;
+            text-align: center;
+            animation: fadeUp 0.4s ease backwards;
+        }
+        .stat-card:nth-child(1) { animation-delay: 0.05s; }
+        .stat-card:nth-child(2) { animation-delay: 0.1s; }
+        .stat-card:nth-child(3) { animation-delay: 0.15s; }
+        .stat-card .number {
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+        .stat-card .label {
+            font-size: 8px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-wrap {
+            margin: 2px 0;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #ddd;
+            border-radius: 4px;
+            border: 1px solid #aaa;
+            overflow: hidden;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            background: #222;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.6s ease;
+        }
+
+        .badges-row {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .badge-item {
+            padding: 2px 8px;
+            border: 2px solid #222;
+            border-radius: 30px;
+            font-size: 9px;
+            font-weight: bold;
+            background: #f5f2eb;
+            color: #222;
+            transition: all 0.2s ease;
+        }
+        .badge-item.active {
+            background: #222;
+            color: #f5f2eb;
+        }
+        .badge-item.locked {
+            opacity: 0.3;
+            filter: grayscale(1);
+        }
+
+        /* ===== ПЕРСОНАЖ ===== */
+        .avatar-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;
+            padding: 2px;
+        }
+        .avatar-container svg {
+            width: 40px;
+            height: 40px;
+            image-rendering: pixelated;
+        }
+        .avatar-container .wave-hand {
+            animation: wave 2s infinite ease-in-out;
+            transform-origin: top right;
+        }
+
+        @keyframes wave {
+            0%,
+            100% { transform: rotate(0deg); }
+            50% { transform: rotate(-12deg); }
+        }
+
+        /* ===== КНОПКИ ===== */
+        .btn-row {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            flex: 1;
+            min-width: 40px;
+            background: #222;
+            color: #f5f2eb;
+            border: 2px solid #222;
+            border-radius: 40px;
+            padding: 5px 0;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+        }
+        .btn:active {
+            transform: scale(0.94);
+            background: #f5f2eb;
+            color: #222;
+        }
+        .btn.secondary {
+            background: transparent;
+            color: #222;
+        }
+        .btn.secondary:active {
+            background: #222;
+            color: #f5f2eb;
+        }
+        .btn:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+            filter: grayscale(1);
+        }
+        .btn.small {
+            font-size: 8px;
+            padding: 2px 6px;
+            min-width: auto;
+            flex: 0 1 auto;
+        }
+
+        /* ===== ЧАТ ===== */
+        .chat-box {
+            border: 2px solid #222;
+            border-radius: 10px;
+            padding: 4px 6px;
+            max-height: 80px;
+            overflow-y: auto;
+            background: #fcfaf5;
+            font-size: 10px;
+            line-height: 1.3;
+        }
+        .chat-box .msg {
+            padding: 2px 0;
+            border-bottom: 1px solid #eee;
+            animation: fadeUp 0.25s ease;
+        }
+        .chat-box .msg:last-child {
+            border-bottom: none;
+        }
+        .chat-box .msg .who {
+            font-weight: bold;
+            color: #222;
+        }
+        .chat-box .msg .who.ai {
+            color: #555;
+        }
+        .chat-box .msg .who.system {
+            color: #888;
+            font-style: italic;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 4px;
+        }
+        .chat-input-row input {
+            flex: 1;
+            padding: 4px 8px;
+            border: 2px solid #222;
+            border-radius: 40px;
+            font-family: inherit;
+            font-size: 10px;
+            background: #fff;
+            color: #222;
+            outline: none;
+        }
+        .chat-input-row input:focus {
+            background: #f0ede6;
+        }
+        .chat-input-row .btn {
+            flex: 0 0 auto;
+            padding: 4px 10px;
+            font-size: 11px;
+        }
+
+        /* ===== ЗАДАНИЯ ===== */
+        .quest-list {
+            border: 2px solid #222;
+            border-radius: 10px;
+            padding: 4px 6px;
+            max-height: 60px;
+            overflow-y: auto;
+            background: #fcfaf5;
+            font-size: 10px;
+        }
+        .quest-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 0;
+            border-bottom: 1px solid #eee;
+            animation: fadeUp 0.2s ease;
+        }
+        .quest-item:last-child {
+            border-bottom: none;
+        }
+        .quest-item .take-btn {
+            background: #222;
+            color: #f5f2eb;
+            border: none;
+            border-radius: 20px;
+            padding: 0 6px;
+            font-size: 8px;
+            font-family: inherit;
+            cursor: pointer;
+            margin-left: auto;
+        }
+        .quest-item .take-btn:active {
+            transform: scale(0.93);
+        }
+
+        /* ===== МОДАЛКИ ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: #f5f2eb;
+            border: 3px solid #222;
+            border-radius: 16px;
+            padding: 14px 16px;
+            max-width: 340px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            font-family: 'Courier New', monospace;
+            animation: fadeUp 0.25s ease;
+        }
+        .modal h3 {
+            font-size: 15px;
+            border-bottom: 2px solid #222;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .modal label {
+            display: block;
+            font-size: 10px;
+            font-weight: bold;
+            margin: 4px 0 2px;
+        }
+        .modal select,
+        .modal input,
+        .modal textarea {
+            width: 100%;
+            padding: 4px 6px;
+            font-family: inherit;
+            font-size: 11px;
+            border: 2px solid #222;
+            border-radius: 8px;
+            background: #fff;
+            color: #222;
+            outline: none;
+        }
+        .modal textarea {
+            resize: vertical;
+            min-height: 36px;
+        }
+        .modal .btn-row {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .modal .btn-row .btn {
+            flex: 1;
+            padding: 6px 0;
+            font-size: 12px;
+        }
+        .modal .btn-row .btn.cancel {
+            background: transparent;
+            color: #222;
+            border-color: #222;
+        }
+
+        /* ===== РАЙОННАЯ СТАТИСТИКА ===== */
+        .district-stats {
+            font-size: 10px;
+            padding: 2px 0;
+        }
+        .district-stats .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 4px;
+            margin: 2px 0;
+        }
+        .district-stats .stat-box {
+            text-align: center;
+            border: 1px solid #222;
+            border-radius: 6px;
+            padding: 2px;
+        }
+        .district-stats .stat-box .num {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .district-stats .stat-box .lbl {
+            font-size: 7px;
+            color: #555;
+        }
+
+        /* ===== АНИМАЦИИ ===== */
+        @keyframes pulse {
+            0%,
+            100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes karmaFly {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(0.5);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px) scale(1.2);
+            }
+        }
+
+        .karma-fly {
+            position: fixed;
+            font-size: 34px;
+            font-weight: bold;
+            color: #222;
+            pointer-events: none;
+            z-index: 999;
+            font-family: 'Courier New', monospace;
+            animation: karmaFly 0.8s ease-out forwards;
+        }
+
+        /* ===== АДАПТАЦИЯ ===== */
+        @media (max-width: 420px) {
+            .phone {
+                width: 100%;
+                height: 95vh;
+                border-radius: 20px;
+                padding: 12px;
+            }
+            .screen {
+                padding: 10px 6px;
+                gap: 3px;
+            }
+            .stats-grid {
+                gap: 3px;
+            }
+            .stat-card .number {
+                font-size: 14px;
+            }
+            .avatar-container svg {
+                width: 32px;
+                height: 32px;
+            }
+            .header .title {
+                font-size: 15px;
+            }
+            .modal {
+                max-width: 100%;
+                margin: 10px;
+            }
+            .chat-box {
+                max-height: 55px;
+                font-size: 9px;
+            }
+            .quest-list {
+                max-height: 45px;
+                font-size: 9px;
+            }
+            .district-stats .stat-box .num {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="screen">
+
+            <!-- ШАПКА -->
+            <div class="header">
+                <span class="title">21</span>
+                <span class="status">
+                    <span id="volunteerBadge" class="badge-volunteer" style="display:none;">⚡ волонтёр</span>
+                    <span>●</span>
+                </span>
+            </div>
+
+            <!-- КАРТА -->
+            <div id="map"></div>
+            <button class="btn small secondary" id="toggleMapBtn" style="padding:2px 0; margin:-2px 0 2px;">⊞ развернуть</button>
+
+            <!-- ИНФОГРАФИКА -->
+            <div class="stats-grid">
+                <div class="stat-card"><div class="number" id="karmaDisplay">+0</div><div class="label">карма</div></div>
+                <div class="stat-card"><div class="number" id="xpDisplay">0</div><div class="label">xp</div></div>
+                <div class="stat-card"><div class="number" id="doneDisplay">0</div><div class="label">выполнено</div></div>
+            </div>
+
+            <!-- ПРОГРЕСС -->
+            <div class="progress-wrap">
+                <div class="progress-label"><span>Уровень</span><span id="levelLabel">1</span></div>
+                <div class="progress-bar"><div class="fill" id="xpBar" style="width:0%;"></div></div>
+            </div>
+
+            <!-- АЧИВКИ -->
+            <div class="badges-row" id="badgesContainer">
+                <span class="badge-item locked">🔧 1</span>
+                <span class="badge-item locked">📚 5</span>
+                <span class="badge-item locked">🌟 10</span>
+                <span class="badge-item locked">🏆 25</span>
+            </div>
+
+            <!-- ПЕРСОНАЖ -->
+            <div style="display:flex; align-items:center; gap:6px; border:2px solid #222; border-radius:10px; padding:4px 6px; background:#fcfaf5;">
+                <div class="avatar-container" id="avatarContainer"></div>
+                <div style="flex:1; font-size:10px;">
+                    <div style="font-weight:bold;" id="charName">Исследователь</div>
+                    <div style="color:#555;">уровень <span id="charLevel">1</span></div>
+                    <div style="font-size:9px; color:#888;">навыки: <span id="charSkills">загрузка...</span></div>
+                </div>
+                <button class="btn small secondary" onclick="cycleAvatar()" style="font-size:12px; padding:0 4px;">🎭</button>
+            </div>
+
+            <!-- ЧАТ -->
+            <div class="chat-box" id="chatBox">
+                <div class="msg"><span class="who ai">🤖 AI:</span> <span class="text">Привет! Я AI-агент 21 в стиле японских инди-игр. Спрашивай!</span></div>
+            </div>
+            <div class="chat-input-row">
+                <input type="text" id="chatInput" placeholder="Спроси AI..." />
+                <button class="btn" id="chatSendBtn">➤</button>
+            </div>
+
+            <!-- ЗАДАНИЯ -->
+            <div class="quest-list" id="questList"><div style="color:#888; font-size:10px; padding:3px 0;">Нет заданий</div></div>
+
+            <!-- РАЙОН -->
+            <div class="district-stats" id="districtStats">
+                <div style="font-weight:bold; font-size:11px;">🏙️ Живой район</div>
+                <div class="grid" id="districtGrid">
+                    <div class="stat-box"><div class="num" id="statSolved">0/0</div><div class="lbl">проблем</div></div>
+                    <div class="stat-box"><div class="num" id="statUsers">0</div><div class="lbl">активных</div></div>
+                    <div class="stat-box"><div class="num" id="statCourts">0</div><div class="lbl">судов</div></div>
+                </div>
+                <div id="districtProblems" style="font-size:9px; color:#555; padding:2px 0;"></div>
+            </div>
+
+            <!-- КНОПКИ -->
+            <div class="btn-row">
+                <button class="btn secondary" id="btnAddTask" disabled>📝 Создать</button>
+                <button class="btn" id="btnRefresh">⟳</button>
+                <button class="btn secondary" id="btnVolunteer">⚡ Стать волонтёром</button>
+                <button class="btn secondary" id="btnCourt">⚖️ Суд</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ЗАДАНИЯ -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h3>📝 Создать задание</h3>
+            <label>Категория</label>
+            <select id="categorySelect">
+                <option value="problem">⚠️ Проблема</option>
+                <option value="help">🤝 Помощь</option>
+                <option value="sticker">🏷️ Стикер 21</option>
+            </select>
+            <label>Название</label>
+            <input type="text" id="labelInput" placeholder="Коротко" />
+            <label>Описание</label>
+            <textarea id="descInput" placeholder="Детали"></textarea>
+            <div class="btn-row">
+                <button class="btn cancel" id="modalCancel">Отмена</button>
+                <button class="btn" id="modalSubmit">✅ Опубликовать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА СУДА -->
+    <div class="modal-overlay" id="courtModal">
+        <div class="modal">
+            <h3>⚖️ Суд сообщества</h3>
+            <label>Название спора</label>
+            <input type="text" id="courtTitle" placeholder="О чём спор?" />
+            <label>Описание</label>
+            <textarea id="courtDesc" placeholder="Детали конфликта..."></textarea>
+            <div class="btn-row">
+                <button class="btn cancel" id="courtCancel">Отмена</button>
+                <button class="btn" id="courtSubmit">⚖️ Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПОДКЛЮЧАЕМ БИБЛИОТЕКИ -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            // 1. СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+            // ============================================================
+            const STORAGE_KEY = '21_app_data_v4';
+
+            // ДЕФОЛТНЫЕ ДАННЫЕ
+            const defaultState = {
+                tasks: [
+                    { id: 't1', type: 'problem', lat: 55.751244, lon: 37.618423, label: 'Сломанный бордюр',
+                        desc: 'Трещина, нужно залить цементом', status: 'open', author: 'Анна' },
+                    { id: 't2', type: 'help', lat: 55.755864, lon: 37.617698, label: 'Перевезти диван',
+                        desc: '2 этаж, подъезд 3, нужны руки', status: 'open', author: 'Игорь' },
+                    { id: 't3', type: 'sticker', lat: 55.758, lon: 37.620, label: 'Новый книжный шкаф',
+                        desc: 'Нужно наклеить стикер 21', status: 'open', author: 'Ольга' },
+                ],
+                isVolunteer: false,
+                karma: 0,
+                xp: 0,
+                done: 0,
+                character: {
+                    name: 'Исследователь',
+                    level: 1,
+                    xp: 0,
+                    xpToNext: 100,
+                    head: 'default',
+                    body: 'default',
+                    accessory: null,
+                    emotion: 'neutral',
+                    skills: { repair: 0, help: 0, books: 0, nature: 0, city: 0 },
+                },
+                district: {
+                    name: 'Центральный',
+                    problems: [
+                        { id: 'p1', type: 'repair', lat: 55.751244, lon: 37.618423, label: 'Яма на дороге',
+                            desc: 'Опасная яма, нужен ремонт', status: 'open', votes: 3, reportedBy: 'Сосед' },
+                        { id: 'p2', type: 'clean', lat: 55.755864, lon: 37.617698, label: 'Мусор на детской площадке',
+                            desc: 'Куча мусора, нужна уборка', status: 'open', votes: 2, reportedBy: 'Мария' },
+                    ],
+                    conflicts: [],
+                    stats: { totalProblems: 0, solvedProblems: 0, activeUsers: 2 },
+                }
+            };
+
+            let state = {};
+
+            // Загружаем из localStorage или берём дефолт
+            function loadState() {
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEY);
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        // Глубокое слияние с дефолтом (на случай новых полей)
+                        state = deepMerge(defaultState, data);
+                    } else {
+                        state = JSON.parse(JSON.stringify(defaultState));
+                    }
+                } catch (e) {
+                    state = JSON.parse(JSON.stringify(defaultState));
+                }
+                // Синхронизируем character.xp с общим xp (для уровней)
+                state.character.xp = state.xp;
+                // Пересчитываем уровень
+                recalcLevel();
+            }
+
+            function deepMerge(target, source) {
+                const result = { ...target };
+                for (const key in source) {
+                    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                        result[key] = deepMerge(target[key] || {}, source[key]);
+                    } else {
+                        result[key] = source[key];
+                    }
+                }
+                return result;
+            }
+
+            function recalcLevel() {
+                let level = 1;
+                let xp = state.xp;
+                let xpToNext = 100;
+                while (xp >= xpToNext) {
+                    xp -= xpToNext;
+                    level += 1;
+                    xpToNext = Math.floor(xpToNext * 1.3) + 20;
+                }
+                state.character.level = level;
+                state.character.xp = state.xp;
+                state.character.xpToNext = xpToNext;
+            }
+
+            function saveState() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                updateUI();
+            }
+
+            // ============================================================
+            // 2. КАРТА (Leaflet)
+            // ============================================================
+            const map = L.map('map', {
+                center: [55.751244, 37.618423],
+                zoom: 13,
+                zoomControl: true,
+                fadeAnimation: false,
+                zoomAnimation: false,
+                markerZoomAnimation: false,
+            });
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap, &copy; CartoDB',
+                subdomains: 'abcd',
+                maxZoom: 19,
+            }).addTo(map);
+
+            let markers = {};
+
+            function getMarkerIcon(type) {
+                const emoji = type === 'sticker' ? '21' : type === 'problem' ? '⚠️' : '🤝';
+                const bg = type === 'sticker' ? '#222' : type === 'problem' ? '#222' : '#f5f2eb';
+                const color = type === 'sticker' ? '#f5f2eb' : type === 'problem' ? '#f5f2eb' : '#222';
+                return L.divIcon({
+                    html: `<div style="width:30px;height:30px;border-radius:50%;background:${bg};color:${color};border:2px solid #222;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;font-family:'Courier New',monospace;">${emoji}</div>`,
+                    className: '',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15],
+                });
+            }
+
+            function renderMap() {
+                Object.values(markers).forEach(m => map.removeLayer(m));
+                markers = {};
+
+                // Задания
+                state.tasks.forEach(t => {
+                    if (t.status === 'done') return;
+                    const icon = getMarkerIcon(t.type);
+                    const marker = L.marker([t.lat, t.lon], { icon, riseOnHover: true });
+                    const statusText = t.status === 'open' ? '🔴 Открыто' : '🟡 В работе (' + (t.volunteer || 'кто-то') +
+                        ')';
+                    marker.bindPopup(
+                        `<b>${t.label}</b><br>${t.desc || ''}<br><span style="color:#888;font-size:10px;">${statusText}</span>`
+                        );
+                    marker.addTo(map);
+                    markers[t.id] = marker;
+                });
+
+                // Проблемы района
+                state.district.problems.forEach(p => {
+                    if (p.status === 'solved') return;
+                    const icon = L.divIcon({
+                        html: `<div style="width:24px;height:24px;border-radius:50%;background:#222;color:#f5f2eb;border:2px solid #222;display:flex;align-items:center;justify-content:center;font-size:12px;">⚠️</div>`,
+                        className: '',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12],
+                    });
+                    const marker = L.marker([p.lat, p.lon], { icon, riseOnHover: true });
+                    marker.bindPopup(
+                        `<b>${p.label}</b><br>${p.desc}<br><span style="color:#888;">голосов: ${p.votes}</span>`
+                        );
+                    marker.addTo(map);
+                    markers['p_' + p.id] = marker;
+                });
+
+                setTimeout(() => map.invalidateSize(), 100);
+            }
+
+            // ============================================================
+            // 3. SVG-ПЕРСОНАЖ (японский инди-стиль)
+            // ============================================================
+            function getAvatarSVG(head, body, accessory, emotion) {
+                const mouth = (emotion === 'happy') ? 'rect x="22" y="20" width="4" height="2" fill="#f5f2eb"' :
+                    (emotion === 'determined') ? 'rect x="20" y="20" width="8" height="2" fill="#f5f2eb"' :
+                    'rect x="22" y="20" width="4" height="2" fill="#f5f2eb"';
+
+                const headColor = (head === 'helmet') ? '#555' : (head === 'beanie') ? '#888' : '#222';
+                const headExtra = (head === 'helmet') ?
+                    '<rect x="12" y="4" width="24" height="6" fill="#555"/><rect x="10" y="6" width="4" height="4" fill="#555"/><rect x="34" y="6" width="4" height="4" fill="#555"/>' :
+                    (head === 'beanie') ?
+                    '<rect x="12" y="4" width="24" height="8" fill="#888"/><circle cx="16" cy="6" r="3" fill="#888"/><circle cx="32" cy="6" r="3" fill="#888"/>' :
+                    '<rect x="12" y="4" width="24" height="6" fill="#222"/><rect x="10" y="6" width="4" height="4" fill="#222"/><rect x="34" y="6" width="4" height="4" fill="#222"/>';
+
+                const bodyColor = (body === 'cape') ? '#555' : (body === 'jacket') ? '#444' : '#222';
+                const bodyExtra = (body === 'cape') ?
+                    '<rect x="12" y="22" width="24" height="16" fill="#555" rx="2"/><rect x="12" y="36" width="24" height="4" fill="#555"/>' :
+                    (body === 'jacket') ?
+                    '<rect x="14" y="22" width="20" height="14" fill="#444" rx="2"/><rect x="14" y="30" width="20" height="2" fill="#f5f2eb"/>' :
+                    '';
+
+                const acc = accessory ? {
+                    'glasses': '<rect x="16" y="12" width="16" height="6" fill="none" stroke="#f5f2eb" stroke-width="2"/><rect x="16" y="12" width="4" height="4" fill="none" stroke="#f5f2eb" stroke-width="1"/><rect x="28" y="12" width="4" height="4" fill="none" stroke="#f5f2eb" stroke-width="1"/>',
+                    'backpack': '<rect x="28" y="24" width="8" height="12" fill="#555" rx="2"/><rect x="30" y="22" width="4" height="4" fill="#555"/>',
+                    'guitar': '<rect x="30" y="20" width="4" height="16" fill="#888"/><circle cx="32" cy="20" r="6" fill="none" stroke="#888" stroke-width="2"/>',
+                    'book': '<rect x="30" y="22" width="8" height="12" fill="#f5f2eb" stroke="#222" stroke-width="1"/>',
+                } [accessory] : '';
+
+                return `<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                            <ellipse cx="24" cy="44" rx="12" ry="3" fill="#ccc" opacity="0.5"/>
+                            <rect x="18" y="36" width="4" height="8" fill="#222"/>
+                            <rect x="26" y="36" width="4" height="8" fill="#222"/>
+                            ${bodyExtra || `<rect x="16" y="22" width="16" height="14" fill="${bodyColor}" rx="2"/>
+                            <rect x="16" y="30" width="16" height="2" fill="#f5f2eb"/>`}
+                            <rect x="12" y="24" width="4" height="12" fill="#222"/>
+                            <rect x="32" y="24" width="4" height="12" fill="#222"/>
+                            <rect x="10" y="34" width="6" height="4" fill="#222"/>
+                            <rect x="32" y="34" width="6" height="4" fill="#222"/>
+                            <rect x="14" y="6" width="20" height="18" fill="${headColor}" rx="3"/>
+                            ${headExtra}
+                            <rect x="18" y="12" width="4" height="4" fill="#f5f2eb"/>
+                            <rect x="26" y="12" width="4" height="4" fill="#f5f2eb"/>
+                            <rect x="20" y="14" width="2" height="2" fill="#222"/>
+                            <rect x="28" y="14" width="2" height="2" fill="#222"/>
+                            ${mouth}
+                            ${acc}
+                            <rect x="34" y="18" width="4" height="6" fill="#222" class="wave-hand"/>
+                        </svg>`;
+            }
+
+            // ============================================================
+            // 4. UI ОБНОВЛЕНИЕ
+            // ============================================================
+            function updateUI() {
+                // Статистика
+                document.getElementById('karmaDisplay').textContent = '+' + state.karma;
+                document.getElementById('xpDisplay').textContent = state.xp;
+                document.getElementById('doneDisplay').textContent = state.done;
+
+                // XP-бар
+                const xpPercent = state.character.xpToNext > 0 ?
+                    Math.min((state.character.xp / state.character.xpToNext) * 100, 100) :
+                    0;
+                document.getElementById('xpBar').style.width = xpPercent + '%';
+                document.getElementById('levelLabel').textContent = state.character.level;
+
+                // Ачивки
+                const badgeDefs = [
+                    { label: '🔧 1', need: 1 },
+                    { label: '📚 5', need: 5 },
+                    { label: '🌟 10', need: 10 },
+                    { label: '🏆 25', need: 25 },
+                ];
+                let html = '';
+                badgeDefs.forEach(b => {
+                    const unlocked = state.done >= b.need;
+                    html += `<span class="badge-item ${unlocked ? 'active' : 'locked'}">${b.label}</span>`;
+                });
+                document.getElementById('badgesContainer').innerHTML = html;
+
+                // Волонтёр
+                document.getElementById('volunteerBadge').style.display = state.isVolunteer ? 'inline-block' : 'none';
+                document.getElementById('btnAddTask').disabled = !state.isVolunteer;
+
+                // Персонаж
+                const c = state.character;
+                document.getElementById('charName').textContent = c.name;
+                document.getElementById('charLevel').textContent = c.level;
+                document.getElementById('charSkills').textContent =
+                    `ремонт ${c.skills.repair}% помощь ${c.skills.help}% книги ${c.skills.books}%`;
+
+                // Аватар
+                document.getElementById('avatarContainer').innerHTML = getAvatarSVG(
+                    c.head, c.body, c.accessory, c.emotion
+                );
+
+                // Район
+                updateDistrictUI();
+
+                // Список заданий
+                renderTaskList();
+            }
+
+            // ============================================================
+            // 5. РАЙОН
+            // ============================================================
+            function updateDistrictUI() {
+                const d = state.district;
+                const solved = d.problems.filter(p => p.status === 'solved').length;
+                const total = d.problems.length;
+                document.getElementById('statSolved').textContent = solved + '/' + total;
+                document.getElementById('statUsers').textContent = d.stats.activeUsers || 0;
+                document.getElementById('statCourts').textContent = d.conflicts.filter(c => c.status === 'resolved')
+                .length;
+
+                const container = document.getElementById('districtProblems');
+                const openProblems = d.problems.filter(p => p.status !== 'solved');
+                if (openProblems.length === 0) {
+                    container.innerHTML = '<span style="color:#888;">Все проблемы решены</span>';
+                    return;
+                }
+                let html = '';
+                openProblems.forEach(p => {
+                    html +=
+                        `<div style="display:flex; gap:4px; align-items:center; padding:1px 0; border-bottom:1px solid #eee;">
+                                <span>${p.votes >= 5 ? '🗳️' : '📌'}</span>
+                                <span style="flex:1;">${p.label}</span>
+                                <span style="font-size:8px; color:#888;">${p.votes} гол.</span>
+                                ${p.votes < 5 ? `<button class="btn small secondary" onclick="window.voteProblem('${p.id}')" style="font-size:7px; padding:0 4px;">👍</button>` : ''}
+                            </div>`;
+                });
+                container.innerHTML = html;
+            }
+
+            // ============================================================
+            // 6. ЗАДАНИЯ
+            // ============================================================
+            function renderTaskList() {
+                const container = document.getElementById('questList');
+                const openTasks = state.tasks.filter(t => t.status === 'open');
+                if (openTasks.length === 0) {
+                    container.innerHTML = '<div style="color:#888; font-size:10px; padding:3px 0;">Нет открытых заданий</div>';
+                    return;
+                }
+                let html = '';
+                openTasks.forEach(t => {
+                    html += `
+                            <div class="quest-item">
+                                <span>${t.type === 'problem' ? '⚠️' : t.type === 'help' ? '🤝' : '🏷️'}</span>
+                                <span style="flex:1;">${t.label}</span>
+                                <button class="take-btn" data-id="${t.id}">Взять</button>
+                            </div>
+                        `;
+                });
+                container.innerHTML = html;
+                container.querySelectorAll('.take-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        takeTask(this.dataset.id);
+                    });
+                });
+            }
+
+            function takeTask(id) {
+                const task = state.tasks.find(t => t.id === id);
+                if (!task || task.status !== 'open') return;
+                task.status = 'taken';
+                task.volunteer = 'Пользователь';
+                addKarma(1);
+                addXP(10);
+                addChatMessage('Ты взял задание "' + task.label + '"', 'user');
+                saveState();
+                renderMap();
+            }
+
+            // ============================================================
+            // 7. КАРМА + XP
+            // ============================================================
+            function addKarma(amount) {
+                state.karma += amount;
+                // Летающий плюс
+                const fly = document.createElement('div');
+                fly.className = 'karma-fly';
+                fly.textContent = '+';
+                fly.style.left = (window.innerWidth / 2 - 20) + 'px';
+                fly.style.top = (window.innerHeight / 2 - 40) + 'px';
+                document.body.appendChild(fly);
+                setTimeout(() => fly.remove(), 800);
+                saveState();
+            }
+
+            function addXP(amount) {
+                state.xp += amount;
+                state.done += 1;
+
+                // Пересчитываем уровень
+                recalcLevel();
+
+                // Проверяем повышение уровня
+                const oldLevel = state.character.level;
+                const newLevel = oldLevel; // recalcLevel уже обновил
+                if (state.character.level > oldLevel) {
+                    addChatMessage('🎉 Уровень повышен! Ты теперь ' + getLevelTitle(state.character.level), 'system');
+                }
+
+                saveState();
+            }
+
+            function getLevelTitle(level) {
+                if (level >= 50) return 'Легенда города';
+                if (level >= 30) return 'Герой района';
+                if (level >= 20) return 'Мастер';
+                if (level >= 10) return 'Активист';
+                return 'Исследователь';
+            }
+
+            // ============================================================
+            // 8. ЧАТ (без AI, только имитация)
+            // ============================================================
+            function addChatMessage(text, who) {
+                const box = document.getElementById('chatBox');
+                const whoLabel = who === 'user' ? '👤 Ты:' : who === 'system' ? '📢' : '🤖 AI:';
+                const cls = who === 'user' ? '' : who === 'system' ? 'system' : 'ai';
+                box.innerHTML +=
+                    `<div class="msg"><span class="who ${cls}">${whoLabel}</span> <span class="text">${text}</span></div>`;
+                box.scrollTop = box.scrollHeight;
+            }
+
+            function simulateAI(prompt) {
+                const p = prompt.toLowerCase();
+                if (p.includes('ремонт') || p.includes('починить') || p.includes('бордюр')) {
+                    return '🔧 Для ремонта бордюра нужен цемент, вода и шпатель. Смешай 1:3, залей трещину, разровняй. Через 15 минут готово!';
+                }
+                if (p.includes('книга') || p.includes('шкаф')) {
+                    return '📚 Книги обменивают в шкафу у дома 10. Принеси свою — возьми другую!';
+                }
+                if (p.includes('суд') || p.includes('спор')) {
+                    return '⚖️ Суд сообщества решает споры голосованием. Создай спор в приложении!';
+                }
+                if (p.includes('волонтёр') || p.includes('волонтер')) {
+                    return '⚡ Выполни 2 задания и стань волонтёром!';
+                }
+                if (p.includes('привет')) {
+                    return '🎮 Привет, герой! Я AI-агент 21. Спрашивай о ремонте, книгах или суде!';
+                }
+                return '🎮 Я AI-агент 21 в стиле японских инди-игр. Спрашивай о ремонте, книгах, суде или волонтёрстве!';
+            }
+
+            async function askAI(prompt) {
+                // БЕЗ API — только имитация
+                return simulateAI(prompt);
+            }
+
+            // ============================================================
+            // 9. ОТПРАВКА СООБЩЕНИЯ В ЧАТ
+            // ============================================================
+            const chatInput = document.getElementById('chatInput');
+
+            async function sendChat() {
+                const text = chatInput.value.trim();
+                if (!text) return;
+                chatInput.value = '';
+                addChatMessage(text, 'user');
+
+                const typingId = 'typing_' + Date.now();
+                const box = document.getElementById('chatBox');
+                box.innerHTML +=
+                    `<div class="msg" id="${typingId}"><span class="who ai">🤖 AI:</span> <span class="text">...печатает</span></div>`;
+                box.scrollTop = box.scrollHeight;
+
+                const reply = await askAI(text);
+
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.remove();
+
+                addChatMessage(reply, 'ai');
+                if (reply.toLowerCase().includes('молодец') || reply.toLowerCase().includes('отлично')) {
+                    addKarma(1);
+                }
+            }
+
+            document.getElementById('chatSendBtn').addEventListener('click', sendChat);
+            chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChat(); });
+
+            // ============================================================
+            // 10. МОДАЛКИ
+            // ============================================================
+            // Создание задания
+            const modal = document.getElementById('modalOverlay');
+            document.getElementById('btnAddTask').addEventListener('click', function() {
+                if (!state.isVolunteer) {
+                    alert('Только волонтёры могут создавать задания.');
+                    return;
+                }
+                if (!navigator.geolocation) {
+                    alert('Геолокация не поддерживается.');
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        window._pendingLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+                        modal.classList.add('active');
+                        document.getElementById('labelInput').value = '';
+                        document.getElementById('descInput').value = '';
+                    },
+                    () => alert('Не удалось определить местоположение.'),
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            });
+
+            document.getElementById('modalCancel').addEventListener('click', () => modal.classList.remove('active'));
+            document.getElementById('modalSubmit').addEventListener('click', function() {
+                if (!window._pendingLocation) return;
+                const type = document.getElementById('categorySelect').value;
+                const label = document.getElementById('labelInput').value.trim() || 'Без названия';
+                const desc = document.getElementById('descInput').value.trim();
+                const newTask = {
+                    id: 't' + Date.now(),
+                    type: type,
+                    lat: window._pendingLocation.lat,
+                    lon: window._pendingLocation.lon,
+                    label: label,
+                    desc: desc,
+                    status: 'open',
+                    author: 'Волонтёр',
+                };
+                state.tasks.push(newTask);
+                saveState();
+                renderMap();
+                modal.classList.remove('active');
+                map.setView([window._pendingLocation.lat, window._pendingLocation.lon], 16);
+                addChatMessage('Новое задание "' + label + '" опубликовано!', 'ai');
+            });
+
+            // Суд
+            const courtModal = document.getElementById('courtModal');
+            document.getElementById('btnCourt').addEventListener('click', function() {
+                courtModal.classList.add('active');
+                document.getElementById('courtTitle').value = '';
+                document.getElementById('courtDesc').value = '';
+            });
+
+            document.getElementById('courtCancel').addEventListener('click', () => courtModal.classList.remove('active'));
+            document.getElementById('courtSubmit').addEventListener('click', function() {
+                const title = document.getElementById('courtTitle').value.trim();
+                const desc = document.getElementById('courtDesc').value.trim();
+                if (!title) return alert('Введите название спора');
+                const conflict = {
+                    id: 'c' + Date.now(),
+                    title: title,
+                    desc: desc || 'Спор сообщества',
+                    status: 'open',
+                    votesFor: 0,
+                    votesAgainst: 0,
+                    createdBy: 'Пользователь',
+                    createdAt: new Date().toISOString(),
+                };
+                state.district.conflicts.push(conflict);
+                saveState();
+                courtModal.classList.remove('active');
+                addChatMessage('⚖️ Создан судебный спор: ' + title, 'system');
+            });
+
+            // ============================================================
+            // 11. ВОЛОНТЁРСТВО
+            // ============================================================
+            document.getElementById('btnVolunteer').addEventListener('click', function() {
+                if (state.isVolunteer) {
+                    alert('Ты уже волонтёр!');
+                    return;
+                }
+                if (state.done < 2) {
+                    alert('Нужно выполнить хотя бы 2 задания, чтобы стать волонтёром.');
+                    return;
+                }
+                state.isVolunteer = true;
+                saveState();
+                alert('🎉 Ты стал волонтёром! Теперь можешь создавать задания.');
+            });
+
+            // ============================================================
+            // 12. ГОЛОСОВАНИЕ ЗА ПРОБЛЕМЫ
+            // ============================================================
+            window.voteProblem = function(id) {
+                const problem = state.district.problems.find(p => p.id === id);
+                if (!problem || problem.status !== 'open') return;
+                problem.votes += 1;
+                if (problem.votes >= 5) {
+                    problem.status = 'voting';
+                    addChatMessage('🗳️ Проблема "' + problem.label + '" перешла в голосование!', 'system');
+                }
+                saveState();
+            };
+
+            // ============================================================
+            // 13. КАСТОМИЗАЦИЯ ПЕРСОНАЖА
+            // ============================================================
+            const headOptions = ['default', 'helmet', 'beanie'];
+            let headIndex = 0;
+
+            window.cycleAvatar = function() {
+                headIndex = (headIndex + 1) % headOptions.length;
+                state.character.head = headOptions[headIndex];
+                saveState();
+            };
+
+            // ============================================================
+            // 14. КАРТА (сворачивание)
+            // ============================================================
+            let mapExpanded = false;
+            document.getElementById('toggleMapBtn').addEventListener('click', function() {
+                mapExpanded = !mapExpanded;
+                const mapEl = document.getElementById('map');
+                mapEl.style.height = mapExpanded ? '220px' : '150px';
+                this.textContent = mapExpanded ? '⊟ свернуть' : '⊞ развернуть';
+                setTimeout(() => map.invalidateSize(), 200);
+            });
+
+            // ============================================================
+            // 15. ОБНОВЛЕНИЕ
+            // ============================================================
+            document.getElementById('btnRefresh').addEventListener('click', function() {
+                loadState();
+                renderMap();
+                updateUI();
+                addChatMessage('🔄 Приложение обновлено', 'system');
+            });
+
+            // ============================================================
+            // 16. ЗАПУСК
+            // ============================================================
+            loadState();
+            renderMap();
+            updateUI();
+
+            // Приветствие
+            setTimeout(() => {
+                addChatMessage(
+                    '🎮 Привет! Я AI-агент 21. Спрашивай о ремонте, книгах, суде или волонтёрстве. Всё работает локально, без интернета!',
+                    'ai');
+            }, 500);
+
+            // Автокарма (демо-активность)
+            setInterval(() => {
+                addKarma(1);
+            }, 45000);
+
+            console.log('🟢 Приложение "21" (без AI) запущено!');
+            console.log('Текущее состояние:', state);
