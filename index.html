@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
-    /* ===== ВСЕ СТИЛИ (без изменений) ===== */
+    /* ===== ВСЕ СТИЛИ ===== */
     :root {
       --p: #f4f0e7;
       --p2: #e9e3d7;
@@ -140,18 +140,6 @@
       flex-shrink: 0;
     }
 
-    .brand .fallback {
-      display: none;
-      font-size: 18px;
-      font-weight: 800;
-    }
-
-    .brand img:not([src]) + .fallback,
-    .brand img[src=""] + .fallback,
-    .brand img.error + .fallback {
-      display: inline-block;
-    }
-
     .topright {
       font-size: 11px;
       font-weight: 800;
@@ -167,7 +155,7 @@
       background: #151515;
     }
 
-    /* ===== ОСТАЛЬНЫЕ СТИЛИ (без изменений) ===== */
+    /* ===== ОСТАЛЬНЫЕ СТИЛИ ===== */
     h1 {
       font-size: 27px;
       line-height: 1;
@@ -782,16 +770,15 @@
         <!-- ===== HOME ===== -->
         <section class="view active" id="home">
           <div class="top">
-            <!-- ЛОГОТИП ИЗ TELEGRAM -->
+            <!-- ЛОГОТИП 21 (8-БИТ ГРАФФИТИ) -->
             <span class="brand">
               <img 
-                src="https://api.telegram.org/file/bot8933958116:AAEVHv0rzfy5EXzN7fn-It3icGRq1x-Sva4/AgACAgIAAxkBAAM9apipZWTk29Kmb4L2kudMNjA_K0QAAm0kaxu-vchICUhpEfPgRa4BAAMCAAN5AAM9BA" 
+                src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYAAAAGBCAIAAAAPO5pzAAAACXBIWXMAABYlAAAWJQFJUiTwAAADsklEQVR42u3UMQEAMAzDsKb8OWf/CPSRIPhw2g7AkZUA8CDAgwA8CPAgAA8CPAjAgwAPAvAgwIMAPAjwIAAPAjwIwIMADwLwIMCDADwI8CAADwI8CMCDAA8C8CDAgwA8CPAgwIMAPAjwIAAPAjwIwIMADwLwIMCDADwI8CAADwI8CMCDAA8C8CDAgwA8CPAgAA8CPAjAgwAPAjwIwIMADwLwIMCDADwI8CAADwI8CMCDAA8C8CDAgwA8CPAgAA8CPAjAgwAPAvAgwIMAPAjwIAAPAjwIwIMADwLwIMCDADwI8CAADwI8CMCDAA8C8CDAgwA8CPAgAA8CPAjAgwAPAvAgwIMAPAjwIAAPAjwIwIMADwLwIMCDADwI8CAADwI8CPAgAA8CPAjAgwAPAvAgwIMAPAjwIAAPAjwIwIMADwLwIMCDADwI8CAADwI8CMCDAA8C8CDAgwA8CPAgwIMkADwI8CAADwI8CMCDAA8C8CDAgwA8CPAgAA8CPAjAgwAPAvAgwIMAPAjwIAAPAjwIwIMADwLwIMCDADwI8CDAgwA8CPAgAA8CPAjAgwAPAvAgwIMAPAjwIAAPAjwIwIMADwLwIMCDADwI8CAADwI8CMCDAA8C8CDAgwAPAvAgwIMAPAjwIAAPAjwIwIMADwLwIMCDADwI8CAADwI8CMCDAA8C8CDAgwA8CPAgAA8CPAjAgwAPAvAgwIMADwLwIMCDADwI8CAADwI8CMCDAA8C8CDAgwA8CPAgAA8CPAjAgwAPAvAgwIMAPAjwIAAPAjwIwIMADwLwIMCDADwI8CAADwI8CPAgCQAPAjwIwIMADwLwIMCDADwI8CAADwI8CMCDAA8C8CDAgwA8CPAgAA8CPAjAgwAPAvAgwIMAPAjwIAAPAjwI8CAADwI8CMCDAA8C8CDAgwA8CPAgAA8CPAjAgwAPAvAgwIMAPAjwIAAPAjwIwIMADwLwIMCDADwI8CDAgwA8CPAgAA8CPAjAgwAPAvAgwIMAPAjwIAAPAjwIwIMADwLwIMCDADwI8CAADwI8CMCDAA8C8CDAgwA8CPAgwIMAPAjwIAAPAjwIwIMADwLwIMCDADwI8CAADwI8CMCDAA8C8CDAgwA8CPAgAA8CPAjAgwAPAvAgwIMADwLwIMCDADwI8CAADwI8CMCDAA8C8CDAgwA8CPAgAA8CPAjAgwAPAvAgwIMAPAjwIIBfEhGASw9QIgYA6HIHAwAAAABJRU5ErkJggg==" 
                 alt="21" 
                 width="36" 
-                height="36"
-                onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';"
+                height="36" 
+                style="display:block; image-rendering:pixelated; border-radius:4px;"
               />
-              <span class="fallback" style="display:none;">21</span>
             </span>
             <span class="topright" id="clock">21:21 <i class="dot"></i></span>
           </div>
