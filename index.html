@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
+    /* ===== ВСЕ СТИЛИ (без изменений) ===== */
     :root {
       --p: #f4f0e7;
       --p2: #e9e3d7;
@@ -110,6 +111,7 @@
       }
     }
 
+    /* ===== ШАПКА С ЛОГОТИПОМ ===== */
     .top {
       display: flex;
       align-items: center;
@@ -118,8 +120,36 @@
     }
 
     .brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       font-family: "Press Start 2P";
       font-size: 16px;
+      color: var(--i);
+      text-decoration: none;
+    }
+
+    .brand img {
+      display: block;
+      width: 36px;
+      height: 36px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      border-radius: 4px;
+      background: var(--p);
+      flex-shrink: 0;
+    }
+
+    .brand .fallback {
+      display: none;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .brand img:not([src]) + .fallback,
+    .brand img[src=""] + .fallback,
+    .brand img.error + .fallback {
+      display: inline-block;
     }
 
     .topright {
@@ -137,45 +167,39 @@
       background: #151515;
     }
 
+    /* ===== ОСТАЛЬНЫЕ СТИЛИ (без изменений) ===== */
     h1 {
       font-size: 27px;
       line-height: 1;
       margin: 0 0 4px;
       letter-spacing: -1px;
     }
-
     h2 {
       font-size: 17px;
       margin: 0;
       font-weight: 800;
     }
-
     .eyebrow {
       font-size: 9px;
       font-weight: 800;
       letter-spacing: 1.3px;
       color: var(--m);
     }
-
     .muted {
       color: var(--m);
     }
-
     .small {
       font-size: 12px;
     }
-
     .tiny {
       font-size: 10px;
     }
-
     .row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 9px;
     }
-
     .card {
       background: #ffffff9e;
       border: 1px solid var(--l);
@@ -186,7 +210,6 @@
       position: relative;
       overflow: hidden;
     }
-
     .card:before {
       content: "";
       position: absolute;
@@ -195,45 +218,38 @@
       opacity: .035;
       background: repeating-linear-gradient(115deg, transparent 0 8px, #111 9px 10px);
     }
-
     .card.ink {
       background: var(--i);
       color: var(--p);
       border-color: var(--i);
     }
-
     .grid2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 7px;
     }
-
     .grid3 {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 7px;
     }
-
     .stat {
       border: 1px solid var(--l);
       border-radius: 14px;
       padding: 9px;
       background: #fff8;
     }
-
     .stat b {
       display: block;
       font-size: 21px;
       letter-spacing: -1px;
     }
-
     .stat span {
       font-size: 9px;
       font-weight: 800;
       color: var(--m);
       text-transform: uppercase;
     }
-
     .btn {
       min-height: 40px;
       padding: 0 13px;
@@ -243,23 +259,20 @@
       color: var(--p);
       font-size: 11px;
       font-weight: 800;
+      cursor: pointer;
     }
-
     .btn:active {
       transform: scale(.96);
     }
-
     .btn.light {
       background: transparent;
       color: var(--i);
       border-color: var(--l);
     }
-
     .btn.square {
       width: 40px;
       padding: 0;
     }
-
     .tag {
       display: inline-flex;
       align-items: center;
@@ -269,14 +282,12 @@
       font-size: 9px;
       font-weight: 800;
     }
-
     .progress {
       height: 7px;
       background: #ddd8ce;
       border-radius: 8px;
       overflow: hidden;
     }
-
     .progress i {
       display: block;
       height: 100%;
@@ -285,7 +296,6 @@
       border-radius: 8px;
       transition: .5s;
     }
-
     .hero {
       height: 244px;
       background: var(--p2);
@@ -296,20 +306,17 @@
       overflow: hidden;
       margin-bottom: 10px;
     }
-
     .big21 {
       font-family: "Press Start 2P";
       font-size: 70px;
       letter-spacing: -7px;
       margin-top: 18px;
     }
-
     .caption {
       font-size: 9px;
       font-weight: 800;
       letter-spacing: 1px;
     }
-
     .mount {
       position: absolute;
       left: -10px;
@@ -317,12 +324,10 @@
       bottom: 22px;
       height: 90px;
     }
-
     .mount svg {
       width: 100%;
       height: 100%;
     }
-
     .herochar {
       position: absolute;
       right: 31px;
@@ -330,18 +335,15 @@
       width: 54px;
       height: 75px;
     }
-
     .px {
       position: relative;
       width: 100%;
       height: 100%;
     }
-
     .px i {
       position: absolute;
       background: var(--i);
     }
-
     .px .h {
       width: 25px;
       height: 25px;
@@ -349,29 +351,24 @@
       top: 0;
       border-radius: 5px;
     }
-
     .px .b {
       width: 28px;
       height: 32px;
       left: 13px;
       top: 26px;
     }
-
     .px .l1,
     .px .l2 {
       width: 10px;
       height: 23px;
       top: 57px;
     }
-
     .px .l1 {
       left: 13px;
     }
-
     .px .l2 {
       left: 31px;
     }
-
     .px .bag {
       width: 8px;
       height: 22px;
@@ -379,7 +376,6 @@
       top: 31px;
       opacity: .65;
     }
-
     .quickmap {
       height: 132px;
       border-radius: 18px;
@@ -388,14 +384,12 @@
       margin-bottom: 10px;
       filter: grayscale(1) contrast(1.1);
     }
-
     .section {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin: 7px 2px;
     }
-
     .quest {
       display: flex;
       align-items: center;
@@ -403,11 +397,9 @@
       padding: 10px 0;
       border-bottom: 1px dashed var(--l);
     }
-
     .quest:last-child {
       border: 0;
     }
-
     .qicon,
     .listicon,
     .itemart {
@@ -417,36 +409,30 @@
       display: grid;
       place-items: center;
     }
-
     .qicon {
       width: 39px;
       height: 39px;
       font-size: 18px;
       flex: none;
     }
-
     .qmain {
       flex: 1;
       min-width: 0;
     }
-
     .qmain b {
       font-size: 12px;
     }
-
     .qmain div {
       font-size: 10px;
       color: var(--m);
       margin-top: 2px;
     }
-
     .reward {
       font-size: 9px;
       font-weight: 800;
       text-align: right;
       white-space: nowrap;
     }
-
     .nav {
       position: absolute;
       z-index: 30;
@@ -461,7 +447,6 @@
       display: grid;
       grid-template-columns: repeat(5, 1fr);
     }
-
     .nav button {
       border: 0;
       background: transparent;
@@ -474,17 +459,15 @@
       align-items: center;
       justify-content: center;
       gap: 4px;
+      cursor: pointer;
     }
-
     .nav button span {
       font-size: 19px;
     }
-
     .nav button.active {
       color: var(--i);
       background: #00000009;
     }
-
     #map {
       height: 430px;
       border-radius: 20px;
@@ -492,11 +475,9 @@
       overflow: hidden;
       filter: grayscale(1) contrast(1.12);
     }
-
     .leaflet-tile-pane {
       filter: grayscale(1) contrast(1.15) brightness(1.08);
     }
-
     .pin {
       width: 30px;
       height: 30px;
@@ -510,7 +491,6 @@
       font-weight: 800;
       box-shadow: 0 2px 8px #0005;
     }
-
     .listrow {
       display: flex;
       gap: 10px;
@@ -518,31 +498,25 @@
       padding: 10px 0;
       border-bottom: 1px dashed var(--l);
     }
-
     .listrow:last-child {
       border: 0;
     }
-
     .listicon {
       width: 39px;
       height: 39px;
       flex: none;
     }
-
     .listbody {
       flex: 1;
     }
-
     .listbody b {
       font-size: 12px;
     }
-
     .listbody p {
       margin: 3px 0 0;
       font-size: 10px;
       color: var(--m);
     }
-
     .avatarstage {
       height: 235px;
       background: var(--p2);
@@ -554,7 +528,6 @@
       margin-bottom: 10px;
       overflow: hidden;
     }
-
     .floor {
       position: absolute;
       bottom: 24px;
@@ -563,19 +536,16 @@
       border-radius: 50%;
       opacity: .3;
     }
-
     .avatar {
       width: 105px;
       height: 150px;
       position: relative;
       transform: scale(1.08);
     }
-
     .avatar div {
       position: absolute;
       background: var(--i);
     }
-
     .avatar .head {
       left: 31px;
       top: 0;
@@ -583,7 +553,6 @@
       height: 45px;
       border-radius: 9px;
     }
-
     .avatar .face {
       left: 42px;
       top: 17px;
@@ -592,7 +561,6 @@
       background: var(--p);
       box-shadow: 18px 0 0 var(--p);
     }
-
     .avatar .body {
       left: 26px;
       top: 48px;
@@ -600,7 +568,6 @@
       height: 58px;
       border-radius: 8px;
     }
-
     .avatar .a1,
     .avatar .a2 {
       top: 53px;
@@ -608,15 +575,12 @@
       height: 56px;
       border-radius: 7px;
     }
-
     .avatar .a1 {
       left: 8px;
     }
-
     .avatar .a2 {
       right: 8px;
     }
-
     .avatar .l1,
     .avatar .l2 {
       top: 102px;
@@ -624,15 +588,12 @@
       height: 47px;
       border-radius: 7px;
     }
-
     .avatar .l1 {
       left: 29px;
     }
-
     .avatar .l2 {
       left: 56px;
     }
-
     .access {
       position: absolute;
       left: 20px;
@@ -641,13 +602,11 @@
       background: none !important;
       z-index: 2;
     }
-
     .inventory {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 7px;
     }
-
     .item {
       text-align: center;
       border: 1px solid var(--l);
@@ -655,25 +614,21 @@
       padding: 7px;
       background: #fff8;
     }
-
     .itemart {
       width: 45px;
       height: 45px;
       margin: auto;
       font-size: 21px;
     }
-
     .item b {
       display: block;
       font-size: 8px;
       margin-top: 5px;
     }
-
     .item span {
       font-size: 8px;
       color: var(--m);
     }
-
     .modal {
       position: fixed;
       inset: 0;
@@ -685,11 +640,9 @@
       justify-content: center;
       padding: 12px;
     }
-
     .modal.open {
       display: flex;
     }
-
     .sheet {
       width: 393px;
       max-height: 86vh;
@@ -700,7 +653,6 @@
       padding: 18px 15px 22px;
       box-shadow: 0 25px 70px #0007;
     }
-
     .handle {
       width: 38px;
       height: 4px;
@@ -708,11 +660,9 @@
       border-radius: 8px;
       margin: -4px auto 14px;
     }
-
     .field {
       margin: 10px 0;
     }
-
     .field label {
       display: block;
       font-size: 9px;
@@ -721,7 +671,6 @@
       margin-bottom: 5px;
       text-transform: uppercase;
     }
-
     .field input,
     .field textarea,
     .field select {
@@ -733,17 +682,14 @@
       color: var(--i);
       outline: none;
     }
-
     .field textarea {
       min-height: 80px;
     }
-
     .choice {
       display: flex;
       gap: 7px;
       overflow: auto;
     }
-
     .choice button {
       flex: 0 0 auto;
       width: 52px;
@@ -753,11 +699,9 @@
       border-radius: 14px;
       font-size: 23px;
     }
-
     .choice button.sel {
       border: 2px solid #111;
     }
-
     .toast {
       position: fixed;
       z-index: 200;
@@ -773,12 +717,10 @@
       opacity: 0;
       transition: .2s;
     }
-
     .toast.show {
       opacity: 1;
       transform: translate(-50%, 0);
     }
-
     .pop {
       position: fixed;
       z-index: 210;
@@ -795,27 +737,22 @@
       transition: .2s;
       box-shadow: 0 20px 70px #0007;
     }
-
     .pop.show {
       opacity: 1;
       transform: translate(-50%, -50%) scale(1);
     }
-
     .pop .ri {
       font-size: 48px;
     }
-
     .pop b {
       display: block;
       font-size: 18px;
       margin: 6px 0;
     }
-
     .pop span {
       font-size: 10px;
       color: var(--m);
     }
-
     @media(max-width:420px) {
       body {
         background: var(--p);
@@ -845,7 +782,17 @@
         <!-- ===== HOME ===== -->
         <section class="view active" id="home">
           <div class="top">
-            <span class="brand">21</span>
+            <!-- ЛОГОТИП ИЗ TELEGRAM -->
+            <span class="brand">
+              <img 
+                src="https://api.telegram.org/file/bot8933958116:AAEVHv0rzfy5EXzN7fn-It3icGRq1x-Sva4/AgACAgIAAxkBAAM9apipZWTk29Kmb4L2kudMNjA_K0QAAm0kaxu-vchICUhpEfPgRa4BAAMCAAN5AAM9BA" 
+                alt="21" 
+                width="36" 
+                height="36"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';"
+              />
+              <span class="fallback" style="display:none;">21</span>
+            </span>
             <span class="topright" id="clock">21:21 <i class="dot"></i></span>
           </div>
 
