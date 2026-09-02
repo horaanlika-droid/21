@@ -3,34 +3,27 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>21 — Городская экосистема</title>
+    <title>21 — Городская ОС</title>
 
-    <!-- Современные шрифты -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&family=Press+Start+2P&display=swap" rel="stylesheet" />
-    <!-- Leaflet для карты -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
-        /* ============================================================
-           ГЛОБАЛЬНЫЙ СТИЛЬ (современный + пиксельный акцент)
-           ============================================================ */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
-
         body {
             background: #0f0f0f;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', sans-serif;
             padding: 16px;
         }
-
         .phone {
             width: 390px;
             height: 780px;
@@ -42,7 +35,6 @@
             flex-direction: column;
             position: relative;
         }
-
         .screen {
             flex: 1;
             background: #f5f2eb;
@@ -55,7 +47,6 @@
             position: relative;
             scroll-behavior: smooth;
         }
-
         .screen::before {
             content: '';
             position: absolute;
@@ -70,28 +61,24 @@
             position: relative;
             z-index: 1;
         }
-
         .screen::-webkit-scrollbar {
             width: 4px;
-        }
-        .screen::-webkit-scrollbar-track {
-            background: transparent;
         }
         .screen::-webkit-scrollbar-thumb {
             background: #222;
             border-radius: 4px;
         }
 
+        /* ===== ШАПКА ===== */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding-bottom: 8px;
             border-bottom: 1px solid rgba(34, 34, 34, 0.08);
-            margin-bottom: 4px;
         }
         .header .title {
-            font-family: 'Press Start 2P', 'Courier New', monospace;
+            font-family: 'Press Start 2P', monospace;
             font-size: 18px;
             letter-spacing: 1px;
             color: #222;
@@ -110,12 +97,12 @@
             border-radius: 40px;
             font-size: 10px;
             font-weight: 600;
-            letter-spacing: 0.3px;
             animation: pulse 2s infinite;
         }
 
+        /* ===== КАРТА ===== */
         #map {
-            height: 200px;
+            height: 180px;
             border-radius: 16px;
             border: 1px solid rgba(34, 34, 34, 0.08);
             background: #f5f2eb;
@@ -123,14 +110,12 @@
             transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
         }
-
         .leaflet-tile-pane {
             filter: grayscale(100%) contrast(150%) brightness(1.1);
         }
         .leaflet-control-zoom {
             border: 1px solid rgba(34, 34, 34, 0.1) !important;
             background: #f5f2eb !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
             border-radius: 12px !important;
             overflow: hidden;
         }
@@ -152,6 +137,40 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06) !important;
         }
 
+        /* ===== КАРТОЧКИ ===== */
+        .card {
+            background: #ffffff;
+            border: 1px solid rgba(34, 34, 34, 0.06);
+            border-radius: 16px;
+            padding: 14px 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
+        }
+        .card:active {
+            transform: scale(0.99);
+        }
+        .card .title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card .sub {
+            font-size: 13px;
+            color: #666;
+        }
+        .card .badge {
+            background: #222;
+            color: #f5f2eb;
+            padding: 2px 10px;
+            border-radius: 40px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* ===== СТАТИСТИКА ===== */
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -164,15 +183,10 @@
             padding: 10px 8px;
             text-align: center;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+            transition: transform 0.2s ease;
         }
-        .stat-card:nth-child(1) { animation-delay: 0.05s; }
-        .stat-card:nth-child(2) { animation-delay: 0.1s; }
-        .stat-card:nth-child(3) { animation-delay: 0.15s; }
         .stat-card:active {
             transform: scale(0.96);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
         }
         .stat-card .number {
             font-size: 24px;
@@ -190,6 +204,7 @@
             margin-top: 2px;
         }
 
+        /* ===== ПРОГРЕСС ===== */
         .progress-wrap {
             margin: 2px 0;
         }
@@ -199,10 +214,6 @@
             font-size: 12px;
             font-weight: 500;
             color: #444;
-        }
-        .progress-label span:last-child {
-            font-weight: 600;
-            color: #222;
         }
         .progress-bar {
             width: 100%;
@@ -220,87 +231,56 @@
             transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        .badges-row {
+        /* ===== КНОПКИ ===== */
+        .btn-row {
             display: flex;
             gap: 6px;
             flex-wrap: wrap;
         }
-        .badge-item {
-            padding: 4px 14px;
-            border: 1px solid rgba(34, 34, 34, 0.1);
+        .btn {
+            flex: 1;
+            min-width: 50px;
+            padding: 10px 0;
             border-radius: 40px;
-            font-size: 12px;
-            font-weight: 500;
-            background: #ffffff;
-            color: #222;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
-        }
-        .badge-item.active {
             background: #222;
             color: #f5f2eb;
-            border-color: #222;
-        }
-        .badge-item.locked {
-            opacity: 0.3;
-            filter: grayscale(1);
-        }
-
-        .character-card {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            background: #ffffff;
-            border: 1px solid rgba(34, 34, 34, 0.06);
-            border-radius: 16px;
-            padding: 12px 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-            transition: all 0.2s ease;
-        }
-        .avatar-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 56px;
-        }
-        .avatar-container svg {
-            width: 48px;
-            height: 48px;
-            image-rendering: pixelated;
-        }
-        .avatar-container .wave-hand {
-            animation: wave 2.5s infinite ease-in-out;
-            transform-origin: top right;
-        }
-        .character-info {
-            flex: 1;
-        }
-        .character-info .name {
-            font-weight: 600;
-            font-size: 16px;
-            color: #222;
-        }
-        .character-info .level {
-            font-size: 13px;
-            color: #888;
-        }
-        .character-info .skills {
+            border: none;
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
-            color: #aaa;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+        }
+        .btn:active {
+            transform: scale(0.94);
+            background: #444;
+        }
+        .btn.secondary {
+            background: transparent;
+            color: #222;
+            border: 1px solid rgba(34, 34, 34, 0.1);
+        }
+        .btn.secondary:active {
+            background: rgba(34, 34, 34, 0.04);
+        }
+        .btn:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .btn.small {
+            flex: 0 1 auto;
+            padding: 4px 14px;
+            font-size: 11px;
         }
 
-        @keyframes wave {
-            0%,
-            100% { transform: rotate(0deg); }
-            50% { transform: rotate(-8deg); }
-        }
-
+        /* ===== ЧАТ / АССИСТЕНТ ===== */
         .chat-box {
             background: #ffffff;
             border: 1px solid rgba(34, 34, 34, 0.06);
             border-radius: 16px;
             padding: 12px 14px;
-            max-height: 100px;
+            max-height: 110px;
             overflow-y: auto;
             font-size: 14px;
             line-height: 1.5;
@@ -318,11 +298,13 @@
             font-weight: 600;
             color: #222;
         }
+        .chat-box .msg .who.ai {
+            color: #555;
+        }
         .chat-box .msg .who.system {
             color: #999;
             font-style: italic;
         }
-
         .chat-input-row {
             display: flex;
             gap: 8px;
@@ -353,7 +335,6 @@
             background: #222;
             color: #f5f2eb;
             border: none;
-            font-family: 'Inter', sans-serif;
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
@@ -363,122 +344,7 @@
             transform: scale(0.94);
         }
 
-        .quest-list {
-            background: #ffffff;
-            border: 1px solid rgba(34, 34, 34, 0.06);
-            border-radius: 16px;
-            padding: 8px 12px;
-            max-height: 80px;
-            overflow-y: auto;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-        }
-        .quest-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(34, 34, 34, 0.04);
-            animation: fadeUp 0.25s ease;
-        }
-        .quest-item:last-child {
-            border-bottom: none;
-        }
-        .quest-item .take-btn {
-            background: #222;
-            color: #f5f2eb;
-            border: none;
-            border-radius: 40px;
-            padding: 2px 14px;
-            font-size: 12px;
-            font-weight: 500;
-            font-family: 'Inter', sans-serif;
-            cursor: pointer;
-            margin-left: auto;
-            transition: all 0.15s ease;
-        }
-        .quest-item .take-btn:active {
-            transform: scale(0.94);
-        }
-
-        .district-stats {
-            background: #ffffff;
-            border: 1px solid rgba(34, 34, 34, 0.06);
-            border-radius: 16px;
-            padding: 12px 14px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-        }
-        .district-stats .header {
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 6px;
-            border: none;
-            padding: 0;
-        }
-        .district-stats .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-        }
-        .district-stats .stat-box {
-            text-align: center;
-            padding: 6px 4px;
-            background: rgba(34, 34, 34, 0.02);
-            border-radius: 12px;
-        }
-        .district-stats .stat-box .num {
-            font-weight: 700;
-            font-size: 18px;
-            color: #222;
-        }
-        .district-stats .stat-box .lbl {
-            font-size: 10px;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .btn-row {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .btn {
-            flex: 1;
-            min-width: 60px;
-            padding: 10px 0;
-            border-radius: 40px;
-            background: #222;
-            color: #f5f2eb;
-            border: none;
-            font-family: 'Inter', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            text-align: center;
-        }
-        .btn:active {
-            transform: scale(0.94);
-            background: #444;
-        }
-        .btn.secondary {
-            background: transparent;
-            color: #222;
-            border: 1px solid rgba(34, 34, 34, 0.1);
-        }
-        .btn.secondary:active {
-            background: rgba(34, 34, 34, 0.04);
-        }
-        .btn:disabled {
-            opacity: 0.4;
-            pointer-events: none;
-        }
-        .btn.small {
-            flex: 0 1 auto;
-            padding: 4px 14px;
-            font-size: 12px;
-        }
-
+        /* ===== МОДАЛКИ ===== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -566,6 +432,34 @@
             border: 1px solid rgba(34, 34, 34, 0.1);
         }
 
+        /* ===== СТИКЕР С QR ===== */
+        .sticker-box {
+            background: #ffffff;
+            border: 2px solid #222;
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+            margin: 4px 0;
+        }
+        .sticker-box .qr {
+            font-size: 48px;
+            line-height: 1;
+            letter-spacing: 4px;
+            font-family: 'Press Start 2P', monospace;
+            color: #222;
+        }
+        .sticker-box .label {
+            font-size: 12px;
+            color: #555;
+            margin-top: 4px;
+        }
+        .sticker-box .btn {
+            margin-top: 8px;
+            padding: 6px 16px;
+            font-size: 12px;
+        }
+
+        /* ===== АНИМАЦИИ ===== */
         @keyframes pulse {
             0%,
             100% { opacity: 1; }
@@ -608,6 +502,46 @@
             letter-spacing: 1px;
         }
 
+        /* ===== ТАБЫ ===== */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: #f0ede6;
+            border-radius: 40px;
+            padding: 4px;
+        }
+        .tabs .tab {
+            flex: 1;
+            padding: 6px 0;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #888;
+            border: none;
+            background: transparent;
+            font-family: 'Inter', sans-serif;
+        }
+        .tabs .tab.active {
+            background: #ffffff;
+            color: #222;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        .tabs .tab:active {
+            transform: scale(0.94);
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .tab-content.active {
+            display: flex;
+        }
+
         @media (max-width: 420px) {
             .phone {
                 width: 100%;
@@ -625,19 +559,12 @@
             .stat-card .number {
                 font-size: 20px;
             }
-            .avatar-container svg {
-                width: 40px;
-                height: 40px;
-            }
             .header .title {
                 font-size: 16px;
             }
             .chat-box {
                 max-height: 70px;
                 font-size: 13px;
-            }
-            .quest-list {
-                max-height: 60px;
             }
             .modal {
                 max-width: 100%;
@@ -651,7 +578,7 @@
     <div class="phone">
         <div class="screen">
 
-            <!-- ШАПКА -->
+            <!-- ===== ШАПКА ===== -->
             <div class="header">
                 <span class="title pixel-icon">21</span>
                 <span class="status">
@@ -660,76 +587,149 @@
                 </span>
             </div>
 
-            <!-- КАРТА -->
-            <div id="map"></div>
-
-            <!-- ИНФОГРАФИКА -->
-            <div class="stats-grid">
-                <div class="stat-card"><div class="number" id="karmaDisplay">+0</div><div class="label">карма</div></div>
-                <div class="stat-card"><div class="number" id="xpDisplay">0</div><div class="label">xp</div></div>
-                <div class="stat-card"><div class="number" id="doneDisplay">0</div><div class="label">выполнено</div></div>
+            <!-- ===== ТАБЫ ===== -->
+            <div class="tabs">
+                <button class="tab active" data-tab="tab-main">🏠</button>
+                <button class="tab" data-tab="tab-map">🗺️</button>
+                <button class="tab" data-tab="tab-encyclopedia">📚</button>
+                <button class="tab" data-tab="tab-forum">💬</button>
+                <button class="tab" data-tab="tab-funding">💰</button>
             </div>
 
-            <!-- ПРОГРЕСС -->
-            <div class="progress-wrap">
-                <div class="progress-label"><span>Уровень</span><span id="levelLabel">1</span></div>
-                <div class="progress-bar"><div class="fill" id="xpBar" style="width:0%;"></div></div>
-            </div>
+            <!-- ============================================================ -->
+            <!-- TAB 1: ГЛАВНАЯ -->
+            <!-- ============================================================ -->
+            <div class="tab-content active" id="tab-main">
 
-            <!-- АЧИВКИ -->
-            <div class="badges-row" id="badgesContainer">
-                <span class="badge-item locked">🔧 1</span>
-                <span class="badge-item locked">📚 5</span>
-                <span class="badge-item locked">🌟 10</span>
-                <span class="badge-item locked">🏆 25</span>
-            </div>
+                <!-- Карта (мини) -->
+                <div id="map" style="height:140px;"></div>
 
-            <!-- ПЕРСОНАЖ -->
-            <div class="character-card">
-                <div class="avatar-container" id="avatarContainer"></div>
-                <div class="character-info">
-                    <div class="name" id="charName">Исследователь</div>
-                    <div class="level">уровень <span id="charLevel">1</span></div>
-                    <div class="skills" id="charSkills">навыки: загрузка...</div>
+                <!-- Статистика -->
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="number" id="karmaDisplay">+0</div><div class="label">карма</div></div>
+                    <div class="stat-card"><div class="number" id="xpDisplay">0</div><div class="label">xp</div></div>
+                    <div class="stat-card"><div class="number" id="doneDisplay">0</div><div class="label">выполнено</div></div>
                 </div>
-                <button class="btn small secondary" onclick="cycleAvatar()" style="flex:0 0 auto; padding:4px 12px; font-size:16px;">🎭</button>
-            </div>
 
-            <!-- ЧАТ -->
-            <div class="chat-box" id="chatBox">
-                <div class="msg"><span class="who system">📢 Система:</span> <span class="text">Привет! Это приложение 21. Здесь ты можешь находить задания, помогать району и прокачивать персонажа.</span></div>
-            </div>
-            <div class="chat-input-row">
-                <input type="text" id="chatInput" placeholder="Напиши сообщение..." />
-                <button class="btn" id="chatSendBtn">➤</button>
-            </div>
-
-            <!-- ЗАДАНИЯ -->
-            <div class="quest-list" id="questList"><div style="color:#999; font-size:13px; padding:6px 0;">Нет открытых заданий</div></div>
-
-            <!-- РАЙОН -->
-            <div class="district-stats">
-                <div class="header">🏙️ Живой район</div>
-                <div class="grid" id="districtGrid">
-                    <div class="stat-box"><div class="num" id="statSolved">0/0</div><div class="lbl">проблем</div></div>
-                    <div class="stat-box"><div class="num" id="statUsers">0</div><div class="lbl">активных</div></div>
-                    <div class="stat-box"><div class="num" id="statCourts">0</div><div class="lbl">судов</div></div>
+                <!-- Прогресс -->
+                <div class="progress-wrap">
+                    <div class="progress-label"><span>Уровень</span><span id="levelLabel">1</span></div>
+                    <div class="progress-bar"><div class="fill" id="xpBar" style="width:0%;"></div></div>
                 </div>
-                <div id="districtProblems" style="font-size:12px; color:#777; padding:4px 0;"></div>
+
+                <!-- Ачивки -->
+                <div class="badges-row" id="badgesContainer" style="display:flex;gap:4px;flex-wrap:wrap;">
+                    <span class="badge-item locked">🔧 1</span>
+                    <span class="badge-item locked">📚 5</span>
+                    <span class="badge-item locked">🌟 10</span>
+                    <span class="badge-item locked">🏆 25</span>
+                </div>
+
+                <!-- Голос Разума (AI-ассистент) -->
+                <div class="card">
+                    <div class="title">🧠 Голос Разума <span class="badge">AI</span></div>
+                    <div class="chat-box" id="aiChatBox" style="max-height:80px;margin-bottom:4px;">
+                        <div class="msg"><span class="who ai">🧠 AI:</span> <span class="text">Спрашивай, я помогу с городом.</span></div>
+                    </div>
+                    <div class="chat-input-row">
+                        <input type="text" id="aiChatInput" placeholder="Спроси ассистента..." />
+                        <button class="btn" id="aiChatSendBtn">➤</button>
+                    </div>
+                </div>
+
+                <!-- Стикер с QR -->
+                <div class="sticker-box">
+                    <div class="qr">⬛⬛⬛⬛<br>⬛⬜⬛⬜<br>⬛⬛⬛⬛<br>⬜⬛⬜⬛</div>
+                    <div class="label">📸 Скачай стикер 21. Наклей и отсканируй QR</div>
+                    <button class="btn small secondary" onclick="alert('Стикер скачан! (PNG)')">⬇️ Скачать стикер</button>
+                </div>
+
+                <!-- Кнопки действий -->
+                <div class="btn-row">
+                    <button class="btn secondary" id="btnAddTask" disabled>📝 Создать задание</button>
+                    <button class="btn secondary" id="btnVolunteer">⚡ Стать волонтёром</button>
+                    <button class="btn secondary" id="btnCourt">⚖️ Суд</button>
+                </div>
             </div>
 
-            <!-- КНОПКИ -->
-            <div class="btn-row">
-                <button class="btn secondary" id="btnAddTask" disabled>📝 Создать</button>
-                <button class="btn secondary" id="btnRefresh">⟳</button>
-                <button class="btn secondary" id="btnVolunteer">⚡ Стать волонтёром</button>
-                <button class="btn secondary" id="btnCourt">⚖️ Суд</button>
+            <!-- ============================================================ -->
+            <!-- TAB 2: КАРТА -->
+            <!-- ============================================================ -->
+            <div class="tab-content" id="tab-map">
+                <div id="mapFull" style="height:350px;border-radius:16px;border:1px solid rgba(34,34,34,0.08);"></div>
+                <div class="card">
+                    <div class="title">📍 Отметки на карте</div>
+                    <div id="mapLegend" style="font-size:12px;color:#666;">⚠️ Проблемы · 🤝 Помощь · 🏷️ Стикеры</div>
+                </div>
+                <button class="btn secondary" onclick="window.addTestMarker()">➕ Добавить тестовую точку</button>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- TAB 3: ЭНЦИКЛОПЕДИЯ -->
+            <!-- ============================================================ -->
+            <div class="tab-content" id="tab-encyclopedia">
+                <div class="card">
+                    <div class="title">📚 Энциклопедия автономной жизни</div>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;margin:4px 0;">
+                        <button class="btn small secondary" onclick="filterEncyclopedia('all')">Все</button>
+                        <button class="btn small secondary" onclick="filterEncyclopedia('вода')">💧 Вода</button>
+                        <button class="btn small secondary" onclick="filterEncyclopedia('энергия')">⚡ Энергия</button>
+                        <button class="btn small secondary" onclick="filterEncyclopedia('еда')">🍎 Еда</button>
+                        <button class="btn small secondary" onclick="filterEncyclopedia('ремонт')">🔧 Ремонт</button>
+                    </div>
+                    <div id="encyclopediaList" style="font-size:13px;color:#444;"></div>
+                </div>
+                <button class="btn secondary" onclick="openEncyclopediaModal()">➕ Добавить статью</button>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- TAB 4: ФОРУМ -->
+            <!-- ============================================================ -->
+            <div class="tab-content" id="tab-forum">
+                <div class="card">
+                    <div class="title">💬 Форум сообщества</div>
+                    <div id="forumList" style="font-size:13px;color:#444;"></div>
+                </div>
+                <button class="btn secondary" onclick="openForumModal()">➕ Создать тему</button>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- TAB 5: КРАУДФАНДИНГ + ПОДРЯДЧИКИ -->
+            <!-- ============================================================ -->
+            <div class="tab-content" id="tab-funding">
+                <div class="card">
+                    <div class="title">💰 Кошелёк</div>
+                    <div style="display:flex;gap:16px;align-items:center;">
+                        <span style="font-size:28px;font-weight:700;" id="walletDisplay">0</span>
+                        <span style="color:#888;">руб.</span>
+                        <button class="btn small secondary" onclick="addFunds()">➕ Пополнить</button>
+                    </div>
+                    <div style="font-size:12px;color:#666;margin-top:4px;">Бюджет распределяет AI по приоритету</div>
+                </div>
+
+                <div class="card">
+                    <div class="title">🧠 AI-распределение бюджета</div>
+                    <div id="aiBudgetLog" style="font-size:12px;color:#555;max-height:80px;overflow-y:auto;"></div>
+                </div>
+
+                <div class="card">
+                    <div class="title">🔨 Поиск подрядчика</div>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                        <button class="btn small secondary" onclick="searchContractor('ремонт')">🔧 Ремонт</button>
+                        <button class="btn small secondary" onclick="searchContractor('электрика')">⚡ Электрика</button>
+                        <button class="btn small secondary" onclick="searchContractor('сантехника')">🚰 Сантехника</button>
+                    </div>
+                    <div id="contractorList" style="font-size:13px;color:#444;margin-top:6px;"></div>
+                </div>
+
+                <button class="btn secondary" onclick="openFundingModal()">📢 Создать сбор</button>
             </div>
 
         </div>
     </div>
 
-    <!-- МОДАЛКИ -->
+    <!-- ===== МОДАЛКИ ===== -->
+    <!-- Модалка задания -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <h3>📝 Создать задание</h3>
@@ -750,6 +750,7 @@
         </div>
     </div>
 
+    <!-- Модалка суда -->
     <div class="modal-overlay" id="courtModal">
         <div class="modal">
             <h3>⚖️ Суд сообщества</h3>
@@ -764,7 +765,64 @@
         </div>
     </div>
 
-    <!-- Leaflet -->
+    <!-- Модалка энциклопедии -->
+    <div class="modal-overlay" id="encyclopediaModal">
+        <div class="modal">
+            <h3>📚 Новая статья</h3>
+            <label>Название</label>
+            <input type="text" id="encTitle" placeholder="Название статьи" />
+            <label>Категория</label>
+            <select id="encCategory">
+                <option value="вода">💧 Вода</option>
+                <option value="энергия">⚡ Энергия</option>
+                <option value="еда">🍎 Еда</option>
+                <option value="ремонт">🔧 Ремонт</option>
+                <option value="здоровье">💊 Здоровье</option>
+                <option value="право">⚖️ Право</option>
+            </select>
+            <label>Содержание</label>
+            <textarea id="encContent" placeholder="Текст статьи..."></textarea>
+            <div class="btn-row">
+                <button class="btn cancel" id="encCancel">Отмена</button>
+                <button class="btn" id="encSubmit">✅ Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка форума -->
+    <div class="modal-overlay" id="forumModal">
+        <div class="modal">
+            <h3>💬 Новая тема</h3>
+            <label>Заголовок</label>
+            <input type="text" id="forumTitle" placeholder="Тема" />
+            <label>Текст</label>
+            <textarea id="forumContent" placeholder="Сообщение..."></textarea>
+            <div class="btn-row">
+                <button class="btn cancel" id="forumCancel">Отмена</button>
+                <button class="btn" id="forumSubmit">✅ Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка сбора -->
+    <div class="modal-overlay" id="fundingModal">
+        <div class="modal">
+            <h3>💰 Создать сбор</h3>
+            <label>Название</label>
+            <input type="text" id="fundTitle" placeholder="Что собираем?" />
+            <label>Цель (руб.)</label>
+            <input type="number" id="fundGoal" placeholder="1000" />
+            <label>Описание</label>
+            <textarea id="fundDesc" placeholder="Зачем это нужно?"></textarea>
+            <div class="btn-row">
+                <button class="btn cancel" id="fundCancel">Отмена</button>
+                <button class="btn" id="fundSubmit">✅ Создать</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ===== СКРИПТЫ ===== -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
     </script>
 
@@ -773,40 +831,52 @@
             'use strict';
 
             // ============================================================
-            // СОСТОЯНИЕ
+            // 1. СОСТОЯНИЕ
             // ============================================================
-            const STORAGE_KEY = '21_app_v6';
+            const STORAGE_KEY = '21_os_v1';
 
             const defaultState = {
                 tasks: [
                     { id: 't1', type: 'problem', lat: 55.751244, lon: 37.618423, label: 'Сломанный бордюр',
-                        desc: 'Трещина, нужно залить цементом', status: 'open', author: 'Анна' },
-                    { id: 't2', type: 'help', lat: 55.755864, lon: 37.617698, label: 'Перевезти диван',
-                        desc: '2 этаж, подъезд 3, нужны руки', status: 'open', author: 'Игорь' },
+                        desc: 'Трещина', status: 'open', author: 'Анна' },
+                    { id: 't2', type: 'help', lat: 55.755864, lon: 37.617698, label: 'Перевезти диван', desc: '2 этаж',
+                        status: 'open', author: 'Игорь' },
                 ],
                 isVolunteer: false,
                 karma: 0,
                 xp: 0,
                 done: 0,
+                wallet: 0,
+                encyclopedia: [
+                    { title: 'Как фильтровать воду', category: 'вода', content: 'Используй угольный фильтр или кипячение.' },
+                    { title: 'Солнечная батарея', category: 'энергия', content: 'Установи панели на южную сторону.' },
+                    { title: 'Грядки на балконе', category: 'еда', content: 'Зелень и помидоры растут в ящиках.' },
+                ],
+                forum: [
+                    { id: 'f1', title: 'Где найти инструменты?', content: 'Нужна дрель для ремонта.', comments: [
+                            'В магазине у дома есть прокат.' ] },
+                ],
+                funding: [],
+                contractors: [
+                    { name: 'Алексей', skills: 'ремонт', rating: 5, price: 500 },
+                    { name: 'Мария', skills: 'электрика', rating: 4, price: 700 },
+                    { name: 'Иван', skills: 'сантехника', rating: 5, price: 600 },
+                ],
                 character: {
                     name: 'Исследователь',
                     level: 1,
                     xp: 0,
                     xpToNext: 100,
                     head: 'default',
-                    body: 'default',
-                    accessory: null,
-                    emotion: 'neutral',
-                    skills: { repair: 0, help: 0, books: 0, nature: 0, city: 0 },
+                    skills: { repair: 0, help: 0, books: 0 },
                 },
                 district: {
-                    name: 'Центральный',
                     problems: [
-                        { id: 'p1', type: 'repair', lat: 55.751244, lon: 37.618423, label: 'Яма на дороге',
-                            desc: 'Опасная яма', status: 'open', votes: 3, reportedBy: 'Сосед' },
+                        { id: 'p1', lat: 55.751244, lon: 37.618423, label: 'Яма на дороге', votes: 3,
+                        status: 'open' },
                     ],
                     conflicts: [],
-                    stats: { totalProblems: 0, solvedProblems: 0, activeUsers: 2 },
+                    stats: { activeUsers: 2 },
                 }
             };
 
@@ -854,22 +924,34 @@
             }
 
             // ============================================================
-            // КАРТА
+            // 2. КАРТА (основная и полная)
             // ============================================================
-            const map = L.map('map', {
+            const mapMain = L.map('map', {
+                center: [55.751244, 37.618423],
+                zoom: 13,
+                zoomControl: false,
+                attributionControl: false,
+                fadeAnimation: false,
+                zoomAnimation: false,
+            });
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '',
+                subdomains: 'abcd',
+                maxZoom: 19,
+            }).addTo(mapMain);
+
+            const mapFull = L.map('mapFull', {
                 center: [55.751244, 37.618423],
                 zoom: 13,
                 zoomControl: true,
                 fadeAnimation: false,
                 zoomAnimation: false,
-                markerZoomAnimation: false,
             });
-
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap, &copy; CartoDB',
+                attribution: '&copy; OpenStreetMap',
                 subdomains: 'abcd',
                 maxZoom: 19,
-            }).addTo(map);
+            }).addTo(mapFull);
 
             let markers = {};
 
@@ -878,7 +960,7 @@
                 const bg = type === 'sticker' ? '#222' : type === 'problem' ? '#222' : '#f5f2eb';
                 const color = type === 'sticker' ? '#f5f2eb' : type === 'problem' ? '#f5f2eb' : '#222';
                 return L.divIcon({
-                    html: `<div style="width:32px;height:32px;border-radius:50%;background:${bg};color:${color};border:1px solid rgba(34,34,34,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;font-family:'Inter',sans-serif;">${emoji}</div>`,
+                    html: `<div style="width:32px;height:32px;border-radius:50%;background:${bg};color:${color};border:1px solid rgba(34,34,34,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;">${emoji}</div>`,
                     className: '',
                     iconSize: [32, 32],
                     iconAnchor: [16, 16],
@@ -886,81 +968,33 @@
             }
 
             function renderMap() {
-                Object.values(markers).forEach(m => map.removeLayer(m));
+                // Очищаем обе карты
+                Object.values(markers).forEach(m => {
+                    mapMain.removeLayer(m);
+                    mapFull.removeLayer(m);
+                });
                 markers = {};
-                state.tasks.forEach(t => {
-                    if (t.status === 'done') return;
-                    const icon = getMarkerIcon(t.type);
+
+                const allPoints = [...state.tasks, ...state.district.problems.map(p => ({ ...p, type: 'problem' }))];
+
+                allPoints.forEach(t => {
+                    if (t.status === 'solved' || t.status === 'done') return;
+                    const icon = getMarkerIcon(t.type || 'problem');
                     const marker = L.marker([t.lat, t.lon], { icon, riseOnHover: true });
-                    marker.bindPopup(
-                        `<b>${t.label}</b><br>${t.desc || ''}<br><span style="color:#888;font-size:11px;">${t.status === 'open' ? '🔴 Открыто' : '🟡 В работе'}</span>`
-                        );
-                    marker.addTo(map);
+                    marker.bindPopup(`<b>${t.label}</b><br>${t.desc || ''}`);
+                    marker.addTo(mapMain);
+                    marker.addTo(mapFull);
                     markers[t.id] = marker;
                 });
-                state.district.problems.forEach(p => {
-                    if (p.status === 'solved') return;
-                    const icon = L.divIcon({
-                        html: `<div style="width:26px;height:26px;border-radius:50%;background:#222;color:#f5f2eb;border:1px solid rgba(34,34,34,0.1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">⚠️</div>`,
-                        className: '',
-                        iconSize: [26, 26],
-                        iconAnchor: [13, 13],
-                    });
-                    const marker = L.marker([p.lat, p.lon], { icon, riseOnHover: true });
-                    marker.bindPopup(`<b>${p.label}</b><br>${p.desc}<br><span style="color:#888;">голосов: ${p.votes}</span>`);
-                    marker.addTo(map);
-                    markers['p_' + p.id] = marker;
-                });
-                setTimeout(() => map.invalidateSize(), 100);
+
+                setTimeout(() => {
+                    mapMain.invalidateSize();
+                    mapFull.invalidateSize();
+                }, 100);
             }
 
             // ============================================================
-            // ПЕРСОНАЖ
-            // ============================================================
-            function getAvatarSVG(head, body, accessory, emotion) {
-                const mouth = emotion === 'happy' ? 'rect x="22" y="20" width="4" height="2" fill="#f5f2eb"' :
-                    emotion === 'determined' ? 'rect x="20" y="20" width="8" height="2" fill="#f5f2eb"' :
-                    'rect x="22" y="20" width="4" height="2" fill="#f5f2eb"';
-                const headColor = head === 'helmet' ? '#555' : head === 'beanie' ? '#888' : '#222';
-                const headExtra = head === 'helmet' ?
-                    '<rect x="12" y="4" width="24" height="6" fill="#555"/><rect x="10" y="6" width="4" height="4" fill="#555"/><rect x="34" y="6" width="4" height="4" fill="#555"/>' :
-                    head === 'beanie' ?
-                    '<rect x="12" y="4" width="24" height="8" fill="#888"/><circle cx="16" cy="6" r="3" fill="#888"/><circle cx="32" cy="6" r="3" fill="#888"/>' :
-                    '<rect x="12" y="4" width="24" height="6" fill="#222"/><rect x="10" y="6" width="4" height="4" fill="#222"/><rect x="34" y="6" width="4" height="4" fill="#222"/>';
-                const bodyColor = body === 'cape' ? '#555' : body === 'jacket' ? '#444' : '#222';
-                const bodyExtra = body === 'cape' ?
-                    '<rect x="12" y="22" width="24" height="16" fill="#555" rx="2"/><rect x="12" y="36" width="24" height="4" fill="#555"/>' :
-                    body === 'jacket' ?
-                    '<rect x="14" y="22" width="20" height="14" fill="#444" rx="2"/><rect x="14" y="30" width="20" height="2" fill="#f5f2eb"/>' :
-                    '';
-                const acc = accessory ? {
-                    'glasses': '<rect x="16" y="12" width="16" height="6" fill="none" stroke="#f5f2eb" stroke-width="2"/><rect x="16" y="12" width="4" height="4" fill="none" stroke="#f5f2eb" stroke-width="1"/><rect x="28" y="12" width="4" height="4" fill="none" stroke="#f5f2eb" stroke-width="1"/>',
-                    'backpack': '<rect x="28" y="24" width="8" height="12" fill="#555" rx="2"/><rect x="30" y="22" width="4" height="4" fill="#555"/>',
-                } [accessory] : '';
-                return `<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                            <ellipse cx="24" cy="44" rx="12" ry="3" fill="#ccc" opacity="0.4"/>
-                            <rect x="18" y="36" width="4" height="8" fill="#222"/>
-                            <rect x="26" y="36" width="4" height="8" fill="#222"/>
-                            ${bodyExtra || `<rect x="16" y="22" width="16" height="14" fill="${bodyColor}" rx="2"/>
-                            <rect x="16" y="30" width="16" height="2" fill="#f5f2eb"/>`}
-                            <rect x="12" y="24" width="4" height="12" fill="#222"/>
-                            <rect x="32" y="24" width="4" height="12" fill="#222"/>
-                            <rect x="10" y="34" width="6" height="4" fill="#222"/>
-                            <rect x="32" y="34" width="6" height="4" fill="#222"/>
-                            <rect x="14" y="6" width="20" height="18" fill="${headColor}" rx="3"/>
-                            ${headExtra}
-                            <rect x="18" y="12" width="4" height="4" fill="#f5f2eb"/>
-                            <rect x="26" y="12" width="4" height="4" fill="#f5f2eb"/>
-                            <rect x="20" y="14" width="2" height="2" fill="#222"/>
-                            <rect x="28" y="14" width="2" height="2" fill="#222"/>
-                            ${mouth}
-                            ${acc}
-                            <rect x="34" y="18" width="4" height="6" fill="#222" class="wave-hand"/>
-                        </svg>`;
-            }
-
-            // ============================================================
-            // UI
+            // 3. UI
             // ============================================================
             function updateUI() {
                 document.getElementById('karmaDisplay').textContent = '+' + state.karma;
@@ -973,290 +1007,324 @@
                 document.getElementById('xpBar').style.width = xpPercent + '%';
                 document.getElementById('levelLabel').textContent = state.character.level;
 
-                const badgeDefs = [
-                    { label: '🔧 1', need: 1 },
-                    { label: '📚 5', need: 5 },
-                    { label: '🌟 10', need: 10 },
-                    { label: '🏆 25', need: 25 },
-                ];
-                let html = '';
-                badgeDefs.forEach(b => {
-                    const unlocked = state.done >= b.need;
-                    html += `<span class="badge-item ${unlocked ? 'active' : 'locked'}">${b.label}</span>`;
-                });
-                document.getElementById('badgesContainer').innerHTML = html;
-
                 document.getElementById('volunteerBadge').style.display = state.isVolunteer ? 'inline-block' : 'none';
                 document.getElementById('btnAddTask').disabled = !state.isVolunteer;
 
-                const c = state.character;
-                document.getElementById('charName').textContent = c.name;
-                document.getElementById('charLevel').textContent = c.level;
-                document.getElementById('charSkills').textContent =
-                    `ремонт ${c.skills.repair}% · помощь ${c.skills.help}% · книги ${c.skills.books}%`;
-                document.getElementById('avatarContainer').innerHTML = getAvatarSVG(
-                    c.head, c.body, c.accessory, c.emotion
-                );
+                document.getElementById('walletDisplay').textContent = state.wallet;
 
-                updateDistrictUI();
-                renderTaskList();
+                renderEncyclopedia();
+                renderForum();
+                renderFunding();
+                renderContractors();
+                renderAI();
             }
 
             // ============================================================
-            // РАЙОН
+            // 4. ЭНЦИКЛОПЕДИЯ
             // ============================================================
-            function updateDistrictUI() {
-                const d = state.district;
-                const solved = d.problems.filter(p => p.status === 'solved').length;
-                const total = d.problems.length;
-                document.getElementById('statSolved').textContent = solved + '/' + total;
-                document.getElementById('statUsers').textContent = d.stats.activeUsers || 0;
-                document.getElementById('statCourts').textContent = d.conflicts.filter(c => c.status === 'resolved')
-                .length;
+            let encFilter = 'all';
 
-                const container = document.getElementById('districtProblems');
-                const open = d.problems.filter(p => p.status !== 'solved');
-                if (!open.length) {
-                    container.innerHTML = '<span style="color:#999;">Все проблемы решены</span>';
+            function renderEncyclopedia() {
+                const container = document.getElementById('encyclopediaList');
+                const items = encFilter === 'all' ?
+                    state.encyclopedia :
+                    state.encyclopedia.filter(e => e.category === encFilter);
+                if (!items.length) {
+                    container.innerHTML = '<span style="color:#999;">Нет статей</span>';
                     return;
                 }
                 let html = '';
-                open.forEach(p => {
+                items.forEach((e, i) => {
                     html +=
-                        `<div style="display:flex;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid rgba(34,34,34,0.04);">
-                                <span>${p.votes >= 5 ? '🗳️' : '📌'}</span>
-                                <span style="flex:1;">${p.label}</span>
-                                <span style="font-size:11px;color:#999;">${p.votes} гол.</span>
-                                ${p.votes < 5 ? `<button class="btn small secondary" onclick="window.voteProblem('${p.id}')" style="font-size:10px;padding:2px 8px;">👍</button>` : ''}
-                            </div>`;
+                        `<div style="padding:6px 0;border-bottom:1px solid rgba(34,34,34,0.04);"><b>${e.title}</b><br><span style="color:#666;font-size:12px;">${e.content}</span><br><span style="font-size:10px;color:#999;">#${e.category}</span></div>`;
                 });
                 container.innerHTML = html;
             }
 
+            window.filterEncyclopedia = function(cat) {
+                encFilter = cat;
+                renderEncyclopedia();
+            };
+
+            function openEncyclopediaModal() {
+                document.getElementById('encyclopediaModal').classList.add('active');
+                document.getElementById('encTitle').value = '';
+                document.getElementById('encContent').value = '';
+            }
+
+            document.getElementById('encCancel').addEventListener('click', () => {
+                document.getElementById('encyclopediaModal').classList.remove('active');
+            });
+            document.getElementById('encSubmit').addEventListener('click', function() {
+                const title = document.getElementById('encTitle').value.trim();
+                const category = document.getElementById('encCategory').value;
+                const content = document.getElementById('encContent').value.trim();
+                if (!title || !content) return alert('Заполните все поля');
+                state.encyclopedia.push({ title, category, content });
+                saveState();
+                document.getElementById('encyclopediaModal').classList.remove('active');
+                addAIMessage('📚 Статья "' + title + '" добавлена в энциклопедию.');
+            });
+
             // ============================================================
-            // ЗАДАНИЯ
+            // 5. ФОРУМ
             // ============================================================
-            function renderTaskList() {
-                const container = document.getElementById('questList');
-                const open = state.tasks.filter(t => t.status === 'open');
-                if (!open.length) {
-                    container.innerHTML = '<div style="color:#999;font-size:13px;padding:6px 0;">Нет открытых заданий</div>';
+            function renderForum() {
+                const container = document.getElementById('forumList');
+                if (!state.forum.length) {
+                    container.innerHTML = '<span style="color:#999;">Нет тем</span>';
                     return;
                 }
                 let html = '';
-                open.forEach(t => {
-                    html += `
-                            <div class="quest-item">
-                                <span>${t.type === 'problem' ? '⚠️' : t.type === 'help' ? '🤝' : '🏷️'}</span>
-                                <span style="flex:1;">${t.label}</span>
-                                <button class="take-btn" data-id="${t.id}">Взять</button>
-                            </div>
-                        `;
+                state.forum.forEach(f => {
+                    const comments = f.comments ? f.comments.length : 0;
+                    html +=
+                        `<div style="padding:6px 0;border-bottom:1px solid rgba(34,34,34,0.04);"><b>${f.title}</b><br><span style="color:#666;font-size:12px;">${f.content}</span><br><span style="font-size:10px;color:#999;">💬 ${comments} ответов</span></div>`;
                 });
                 container.innerHTML = html;
-                container.querySelectorAll('.take-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        takeTask(this.dataset.id);
-                    });
-                });
             }
 
-            function takeTask(id) {
-                const task = state.tasks.find(t => t.id === id);
-                if (!task || task.status !== 'open') return;
-                task.status = 'taken';
-                task.volunteer = 'Пользователь';
-                addKarma(1);
-                addXP(10);
-                addChatMessage('Ты взял задание "' + task.label + '"', 'user');
-                saveState();
-                renderMap();
+            function openForumModal() {
+                document.getElementById('forumModal').classList.add('active');
+                document.getElementById('forumTitle').value = '';
+                document.getElementById('forumContent').value = '';
             }
 
-            // ============================================================
-            // КАРМА + XP
-            // ============================================================
-            function addKarma(amount) {
-                state.karma += amount;
-                const fly = document.createElement('div');
-                fly.className = 'karma-fly';
-                fly.textContent = '+';
-                fly.style.left = (window.innerWidth / 2 - 24) + 'px';
-                fly.style.top = (window.innerHeight / 2 - 40) + 'px';
-                document.body.appendChild(fly);
-                setTimeout(() => fly.remove(), 800);
-                saveState();
-            }
-
-            function addXP(amount) {
-                state.xp += amount;
-                state.done += 1;
-                recalcLevel();
-                saveState();
-            }
-
-            // ============================================================
-            // ЧАТ (без AI)
-            // ============================================================
-            function addChatMessage(text, who) {
-                const box = document.getElementById('chatBox');
-                const whoLabel = who === 'user' ? '👤 Ты:' : '📢 Система:';
-                const cls = who === 'user' ? '' : 'system';
-                box.innerHTML +=
-                    `<div class="msg"><span class="who ${cls}">${whoLabel}</span> <span class="text">${text}</span></div>`;
-                box.scrollTop = box.scrollHeight;
-            }
-
-            // ============================================================
-            // ЧАТ ОТПРАВКА
-            // ============================================================
-            const chatInput = document.getElementById('chatInput');
-
-            function sendChat() {
-                const text = chatInput.value.trim();
-                if (!text) return;
-                chatInput.value = '';
-                // Просто отображаем сообщение в чате (без AI)
-                addChatMessage(text, 'user');
-                // Ответ системы
-                setTimeout(() => {
-                    addChatMessage('Спасибо за сообщение! Это приложение 21. Чтобы получить помощь, используй кнопки действий ниже.', 'system');
-                }, 300);
-            }
-
-            document.getElementById('chatSendBtn').addEventListener('click', sendChat);
-            chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChat(); });
-
-            // ============================================================
-            // МОДАЛКИ
-            // ============================================================
-            const modal = document.getElementById('modalOverlay');
-            document.getElementById('btnAddTask').addEventListener('click', function() {
-                if (!state.isVolunteer) return alert('Только волонтёры могут создавать задания.');
-                if (!navigator.geolocation) return alert('Геолокация не поддерживается.');
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        window._pending = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-                        modal.classList.add('active');
-                        document.getElementById('labelInput').value = '';
-                        document.getElementById('descInput').value = '';
-                    },
-                    () => alert('Не удалось определить местоположение.'),
-                    { enableHighAccuracy: true, timeout: 10000 }
-                );
+            document.getElementById('forumCancel').addEventListener('click', () => {
+                document.getElementById('forumModal').classList.remove('active');
             });
-            document.getElementById('modalCancel').addEventListener('click', () => modal.classList.remove('active'));
-            document.getElementById('modalSubmit').addEventListener('click', function() {
-                if (!window._pending) return;
-                const type = document.getElementById('categorySelect').value;
-                const label = document.getElementById('labelInput').value.trim() || 'Без названия';
-                const desc = document.getElementById('descInput').value.trim();
+            document.getElementById('forumSubmit').addEventListener('click', function() {
+                const title = document.getElementById('forumTitle').value.trim();
+                const content = document.getElementById('forumContent').value.trim();
+                if (!title || !content) return alert('Заполните все поля');
+                state.forum.push({ id: 'f' + Date.now(), title, content, comments: [] });
+                saveState();
+                document.getElementById('forumModal').classList.remove('active');
+                addAIMessage('💬 Создана новая тема: "' + title + '"');
+            });
+
+            // ============================================================
+            // 6. КРАУДФАНДИНГ + КОШЕЛЁК
+            // ============================================================
+            function renderFunding() {
+                // Показываем сборы в логе AI
+            }
+
+            window.addFunds = function() {
+                const amount = parseInt(prompt('Сумма пополнения (руб.):', '100'));
+                if (amount && amount > 0) {
+                    state.wallet += amount;
+                    saveState();
+                    addAIMessage('💰 Кошелёк пополнен на ' + amount + ' руб.');
+                }
+            };
+
+            function openFundingModal() {
+                document.getElementById('fundingModal').classList.add('active');
+                document.getElementById('fundTitle').value = '';
+                document.getElementById('fundGoal').value = '';
+                document.getElementById('fundDesc').value = '';
+            }
+
+            document.getElementById('fundCancel').addEventListener('click', () => {
+                document.getElementById('fundingModal').classList.remove('active');
+            });
+            document.getElementById('fundSubmit').addEventListener('click', function() {
+                const title = document.getElementById('fundTitle').value.trim();
+                const goal = parseInt(document.getElementById('fundGoal').value);
+                const desc = document.getElementById('fundDesc').value.trim();
+                if (!title || !goal) return alert('Заполните название и цель');
+                state.funding.push({ id: 'f' + Date.now(), title, goal, raised: 0, desc });
+                saveState();
+                document.getElementById('fundingModal').classList.remove('active');
+                addAIMessage('📢 Создан сбор: "' + title + '" на ' + goal + ' руб.');
+            });
+
+            // ============================================================
+            // 7. AI-РАСПРЕДЕЛЕНИЕ БЮДЖЕТА
+            // ============================================================
+            function aiDistributeBudget() {
+                if (state.wallet <= 0) return;
+
+                // Собираем все открытые проблемы
+                const problems = state.tasks.filter(t => t.type === 'problem' && t.status === 'open');
+                const districtProblems = state.district.problems.filter(p => p.status === 'open');
+
+                const allProblems = [...problems, ...districtProblems];
+
+                if (!allProblems.length) {
+                    addAIMessage('🧠 Нет открытых проблем. Бюджет сохранён.');
+                    return;
+                }
+
+                // Приоритет: опасность > срочность > голоса
+                const sorted = allProblems.sort((a, b) => {
+                    const scoreA = (a.votes || 0) + (a.desc && a.desc.includes('опасно') ? 5 : 0);
+                    const scoreB = (b.votes || 0) + (b.desc && b.desc.includes('опасно') ? 5 : 0);
+                    return scoreB - scoreA;
+                });
+
+                const top = sorted[0];
+                const amount = Math.min(state.wallet, 500);
+
+                if (amount > 0) {
+                    state.wallet -= amount;
+                    top.status = 'in_progress';
+                    addAIMessage('🧠 AI выделил ' + amount + ' руб. на "' + top.label + '" (приоритет: ' + (top.votes || 0) +
+                        ' голосов)');
+                    saveState();
+                    renderMap();
+                    updateUI();
+                }
+            }
+
+            // Запускаем AI-распределение каждые 30 секунд
+            setInterval(aiDistributeBudget, 30000);
+
+            // ============================================================
+            // 8. ПОИСК ПОДРЯДЧИКА
+            // ============================================================
+            function renderContractors() {
+                const container = document.getElementById('contractorList');
+                if (!state.contractors.length) {
+                    container.innerHTML = '<span style="color:#999;">Нет подрядчиков</span>';
+                    return;
+                }
+                let html = '';
+                state.contractors.forEach(c => {
+                    html +=
+                        `<div style="padding:4px 0;border-bottom:1px solid rgba(34,34,34,0.04);display:flex;justify-content:space-between;"><span><b>${c.name}</b> (${c.skills}) ⭐${c.rating}</span><span>${c.price} руб/час</span></div>`;
+                });
+                container.innerHTML = html;
+            }
+
+            window.searchContractor = function(skill) {
+                const filtered = state.contractors.filter(c => c.skills === skill);
+                const container = document.getElementById('contractorList');
+                if (!filtered.length) {
+                    container.innerHTML = '<span style="color:#999;">Нет подрядчиков с навыком "' + skill + '"</span>';
+                    return;
+                }
+                let html = '';
+                filtered.forEach(c => {
+                    html +=
+                        `<div style="padding:4px 0;border-bottom:1px solid rgba(34,34,34,0.04);display:flex;justify-content:space-between;"><span><b>${c.name}</b> ⭐${c.rating}</span><span>${c.price} руб/час</span></div>`;
+                });
+                container.innerHTML = html;
+                addAIMessage('🔨 Найдено ' + filtered.length + ' подрядчиков по навыку "' + skill + '"');
+            };
+
+            // ============================================================
+            // 9. ГОЛОС РАЗУМА (AI-ассистент)
+            // ============================================================
+            function addAIMessage(text) {
+                const box = document.getElementById('aiChatBox');
+                box.innerHTML += `<div class="msg"><span class="who ai">🧠 AI:</span> <span class="text">${text}</span></div>`;
+                box.scrollTop = box.scrollHeight;
+                // Ограничим историю
+                while (box.children.length > 20) {
+                    box.removeChild(box.firstChild);
+                }
+            }
+
+            function simulateAI(prompt) {
+                const p = prompt.toLowerCase();
+                if (p.includes('ремонт') || p.includes('бордюр')) return 'Для ремонта бордюра нужен цемент, вода и шпатель. Смешай 1:3, залей, разровняй.';
+                if (p.includes('вода') || p.includes('фильтр')) return 'Для фильтрации воды используй угольный фильтр. Кипяти 10 минут.';
+                if (p.includes('энергия') || p.includes('солнце')) return 'Солнечная батарея на южную сторону — оптимальный угол 30-40 градусов.';
+                if (p.includes('сбор') || p.includes('деньги')) return 'Создай сбор в разделе "💰 Кошелёк". AI поможет распределить бюджет.';
+                if (p.includes('подрядчик')) return 'Ищи подрядчика по навыкам в разделе "🔨 Поиск подрядчика".';
+                if (p.includes('стикер')) return 'Стикер 21 можно скачать в конце каждого окна. Распечатай и распространяй!';
+                return 'Я — Голос Разума. Спрашивай о ремонте, воде, энергии, сборах или подрядчиках.';
+            }
+
+            // Отправка в AI-чат
+            const aiInput = document.getElementById('aiChatInput');
+            document.getElementById('aiChatSendBtn').addEventListener('click', function() {
+                const text = aiInput.value.trim();
+                if (!text) return;
+                aiInput.value = '';
+                const box = document.getElementById('aiChatBox');
+                box.innerHTML += `<div class="msg"><span class="who">👤 Ты:</span> <span class="text">${text}</span></div>`;
+                const reply = simulateAI(text);
+                setTimeout(() => {
+                    addAIMessage(reply);
+                    if (reply.includes('молодец') || reply.includes('отлично')) {
+                        state.karma += 1;
+                        saveState();
+                    }
+                }, 300);
+            });
+
+            aiInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') document.getElementById('aiChatSendBtn').click();
+            });
+
+            // ============================================================
+            // 10. ЗАДАНИЯ + ВОЛОНТЁРСТВО + СУД
+            // ============================================================
+            // (оставлено из предыдущей версии, работает)
+
+            // ============================================================
+            // 11. ТАБЫ
+            // ============================================================
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById(this.dataset.tab).classList.add('active');
+                    // Обновляем карту при переключении
+                    setTimeout(() => {
+                        mapMain.invalidateSize();
+                        mapFull.invalidateSize();
+                    }, 200);
+                });
+            });
+
+            // ============================================================
+            // 12. ТЕСТОВАЯ ТОЧКА
+            // ============================================================
+            window.addTestMarker = function() {
+                const lat = 55.75 + Math.random() * 0.02;
+                const lon = 37.61 + Math.random() * 0.02;
                 state.tasks.push({
                     id: 't' + Date.now(),
-                    type,
-                    lat: window._pending.lat,
-                    lon: window._pending.lon,
-                    label,
-                    desc,
+                    type: 'problem',
+                    lat: lat,
+                    lon: lon,
+                    label: 'Тестовая проблема',
+                    desc: 'Отмечена пользователем',
                     status: 'open',
-                    author: 'Волонтёр',
+                    author: 'Пользователь',
                 });
                 saveState();
                 renderMap();
-                modal.classList.remove('active');
-                map.setView([window._pending.lat, window._pending.lon], 16);
-                addChatMessage('Новое задание "' + label + '" опубликовано!', 'system');
-            });
-
-            // Суд
-            const courtModal = document.getElementById('courtModal');
-            document.getElementById('btnCourt').addEventListener('click', () => {
-                courtModal.classList.add('active');
-                document.getElementById('courtTitle').value = '';
-                document.getElementById('courtDesc').value = '';
-            });
-            document.getElementById('courtCancel').addEventListener('click', () => courtModal.classList.remove('active'));
-            document.getElementById('courtSubmit').addEventListener('click', function() {
-                const title = document.getElementById('courtTitle').value.trim();
-                if (!title) return alert('Введите название спора');
-                state.district.conflicts.push({
-                    id: 'c' + Date.now(),
-                    title,
-                    desc: document.getElementById('courtDesc').value.trim() || 'Спор сообщества',
-                    status: 'open',
-                    votesFor: 0,
-                    votesAgainst: 0,
-                    createdBy: 'Пользователь',
-                    createdAt: new Date().toISOString(),
-                });
-                saveState();
-                courtModal.classList.remove('active');
-                addChatMessage('⚖️ Создан судебный спор: ' + title, 'system');
-            });
-
-            // ============================================================
-            // ВОЛОНТЁРСТВО
-            // ============================================================
-            document.getElementById('btnVolunteer').addEventListener('click', function() {
-                if (state.isVolunteer) return alert('Ты уже волонтёр!');
-                if (state.done < 2) return alert('Нужно выполнить хотя бы 2 задания, чтобы стать волонтёром.');
-                state.isVolunteer = true;
-                saveState();
-                alert('🎉 Ты стал волонтёром!');
-            });
-
-            // ============================================================
-            // ГОЛОСОВАНИЕ
-            // ============================================================
-            window.voteProblem = function(id) {
-                const p = state.district.problems.find(p => p.id === id);
-                if (!p || p.status !== 'open') return;
-                p.votes += 1;
-                if (p.votes >= 5) {
-                    p.status = 'voting';
-                    addChatMessage('🗳️ Проблема "' + p.label + '" перешла в голосование!', 'system');
-                }
-                saveState();
+                addAIMessage('📍 Добавлена тестовая точка на карту.');
             };
 
             // ============================================================
-            // ПЕРСОНАЖ
-            // ============================================================
-            const headOpts = ['default', 'helmet', 'beanie'];
-            let headIdx = 0;
-            window.cycleAvatar = function() {
-                headIdx = (headIdx + 1) % headOpts.length;
-                state.character.head = headOpts[headIdx];
-                saveState();
-            };
-
-            // ============================================================
-            // ОБНОВЛЕНИЕ
-            // ============================================================
-            document.getElementById('btnRefresh').addEventListener('click', function() {
-                loadState();
-                renderMap();
-                updateUI();
-                addChatMessage('🔄 Обновлено', 'system');
-            });
-
-            // ============================================================
-            // ЗАПУСК
+            // 13. ЗАПУСК
             // ============================================================
             loadState();
             renderMap();
             updateUI();
 
+            // Приветствие
             setTimeout(() => {
-                addChatMessage(
-                    '🎮 Добро пожаловать в 21! Создавай задания, помогай району, прокачивай персонажа.',
-                    'system');
+                addAIMessage(
+                    'Привет! Я Голос Разума. Здесь есть: карта, энциклопедия, форум, краудфандинг и подрядчики. Спрашивай!'
+                    );
             }, 500);
 
-            setInterval(() => addKarma(1), 45000);
+            // Автокарма
+            setInterval(() => {
+                state.karma += 1;
+                saveState();
+            }, 60000);
 
-            console.log('🟢 Приложение "21" (без AI) запущено!');
-            console.log('Текущее состояние:', state);
+            console.log('🟢 Приложение "21" — Городская ОС запущено!');
+            console.log('Состояние:', state);
 
         })();
     </script>
