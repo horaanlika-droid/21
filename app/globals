@@ -1,0 +1,85 @@
+@import 'tailwindcss';
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --font-sans: var(--font-pixel);
+  --font-mono: var(--font-jbmono);
+
+  --radius: 0px;
+}
+
+:root {
+  color-scheme: light;
+  /* 1-bit monochrome palette */
+  --background: #f4f2ea;
+  --foreground: #14110c;
+  --card: #f9f8f2;
+  --card-foreground: #14110c;
+  --muted: #d8d4c6;
+  --muted-foreground: #5a564c;
+  --border: #14110c;
+  --accent: #14110c;
+  --accent-foreground: #f4f2ea;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    min-width: 0;
+  }
+  body {
+    @apply bg-background text-foreground font-mono antialiased;
+    -webkit-font-smoothing: none;
+  }
+  ::selection {
+    background: var(--foreground);
+    color: var(--background);
+  }
+}
+
+@layer utilities {
+  /* hard offset "pixel" shadow */
+  .pixel-shadow {
+    box-shadow: 3px 3px 0 0 var(--foreground);
+  }
+  .pixel-shadow-sm {
+    box-shadow: 2px 2px 0 0 var(--foreground);
+  }
+  .font-display {
+    font-family: var(--font-pixel);
+  }
+  /* dithered checkerboard fill */
+  .dither {
+    background-image:
+      linear-gradient(45deg, var(--foreground) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--foreground) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--foreground) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--foreground) 75%);
+    background-size: 4px 4px;
+    background-position: 0 0, 0 2px, 2px -2px, -2px 0px;
+  }
+  .dither-soft {
+    background-image: radial-gradient(var(--foreground) 0.75px, transparent 0.75px);
+    background-size: 3px 3px;
+  }
+  /* crisp pixel images */
+  .pixelated {
+    image-rendering: pixelated;
+  }
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
