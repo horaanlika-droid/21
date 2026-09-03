@@ -1,0 +1,38 @@
+"use client";
+
+import Image from "next/image";
+import { useState, useEffect } from "react";
+
+export function Header() {
+  const [time, setTime] = useState("");
+
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      setTime(now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }));
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <Image
+          src="/logo.svg"
+          alt="21"
+          width={36}
+          height={36}
+          className="w-9 h-9 pixelated"
+          priority
+        />
+        <span className="pixel text-sm text-[#151515]">21</span>
+      </div>
+      <div className="flex items-center gap-2 text-xs font-extrabold text-[#555]">
+        {time || "21:21"}
+        <span className="w-2 h-2 rounded-full bg-[#151515] animate-pulse" />
+      </div>
+    </div>
+  );
+}
