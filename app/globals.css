@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+/* ============================================================
+   ШРИФТЫ
+   ============================================================ */
+@layer base {
+  :root {
+    --p: #f4f0e7;
+    --p2: #e9e3d7;
+    --i: #151515;
+    --m: #77736b;
+    --l: rgba(21, 21, 21, .16);
+    --w: #fbfaf7;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background: #0f0f0f;
+    color: var(--i);
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  /* E-ink текстура (зернистость) */
+  .ink-texture::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+    opacity: .04;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode: multiply;
+    border-radius: inherit;
+  }
+
+  /* Пиксельный шрифт для акцентов */
+  .pixel {
+    font-family: 'Press Start 2P', monospace;
+    letter-spacing: 1px;
+  }
+
+  /* Карточка в стиле E-ink */
+  .card-ink {
+    background: #ffffff9e;
+    border: 1px solid var(--l);
+    border-radius: 18px;
+    padding: 14px;
+    box-shadow: 0 8px 22px #0000000b;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-ink::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: .035;
+    background: repeating-linear-gradient(115deg, transparent 0 8px, #111 9px 10px);
+  }
+}
+
+/* ============================================================
+   КАРТА (Яндекс)
+   ============================================================ */
+.ymap-container {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--l);
+  filter: grayscale(1) contrast(1.12);
+}
+
+.ymap-container .ymaps-2-1-79-ground-pane {
+  filter: grayscale(1) contrast(1.15);
+}
+
+.ymap-container .ymaps-2-1-79-copyright {
+  display: none !important;
+}
